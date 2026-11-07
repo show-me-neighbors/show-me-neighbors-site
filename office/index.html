@@ -130,7 +130,7 @@
       '<span class="spacer"></span><button class="btn btn-ghost btn-small" id="rf">Refresh</button><button class="btn btn-ghost btn-small" id="csv">Download list</button></div>';
     h += list.length ? '<div class="tablewrap"><table><thead><tr><th>When</th><th>Who</th><th>Where</th><th>Answers</th><th>Status</th><th>Notes</th></tr></thead><tbody>' + list.map(function (x) {
       return '<tr class="' + (x.status === 'New' ? 'new' : '') + '"><td>' + when(x.created_at) + '</td>' +
-        '<td><span class="kind">' + KIND[x.kind] + '</span><br><strong>' + e(x.name || '(no name)') + '</strong><br>' + e(x.email) + (x.phone ? '<br>' + e(x.phone) : '') + '</td>' +
+        '<td><span class="kind">' + KIND[x.kind] + '</span><br><strong>' + e(x.name || '(no name)') + '</strong><br>' + e(x.email) + (x.phone ? '<br>' + e(x.phone) : '') + (x.email_note ? '<div class="msg err" style="margin-top:6px;padding:6px 8px;font-size:.8rem">' + e(x.email_note) + '</div>' : '') + '</td>' +
         '<td>' + e(x.zip) + '<br><span class="' + (x.area === 'Not yet served' ? 'area-out' : 'muted') + '">' + e(x.area || '') + '</span></td>' +
         '<td class="det">' + details(x) + '</td>' +
         '<td><select data-st="' + x.id + '">' + STATUSES.map(function (st) { return '<option' + (st === x.status ? ' selected' : '') + '>' + st + '</option>'; }).join('') + '</select>' + (x.updated_by ? '<div class="small muted" style="margin-top:4px">by ' + e(x.updated_by.split('@')[0]) + '</div>' : '') + '</td>' +
