@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your family account | Show-Me Neighbors</title>
+<meta name="description" content="Make your Show-Me Neighbors family account and tell us about the person you are booking friendly visits for.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css?v=1107q">
+<link rel="icon" href="../assets/favicon.png" type="image/png"><link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<style>
+  body { background: #f5f8fc; }
+  main { padding-block: 28px 70px; }
+  .box { max-width: 720px; margin: 0 auto; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 16px; }
+  .card h2 { margin-top: 0; }
+  .muted { color: var(--ink-soft); }
+  .msg { padding: 12px 14px; border-radius: 12px; margin-top: 12px; font-weight: 700; }
+  .msg.ok { background: #e3f1e6; } .msg.err { background: #fbe4dd; color: #7a2a17; } .msg.info { background: #e3edf6; }
+  .back { background: none; border: 0; font: inherit; font-weight: 800; color: var(--brick); cursor: pointer; padding: 0; margin-bottom: 10px; }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .toplinks { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: .95rem; }
+  .toplinks a { color: var(--ink); text-decoration: none; }
+  @media (max-width: 520px) { .toplinks > a { display: none; } }
+  .person { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+  .initial { flex: 0 0 52px; height: 52px; border-radius: 50%; background: var(--sage-soft); color: var(--brick); display: grid; place-items: center; font-family: "Nunito", sans-serif; font-weight: 900; font-size: 1.4rem; }
+  .bar { height: 8px; border-radius: 99px; background: #e9eff6; overflow: hidden; margin: 8px 0 4px; max-width: 260px; }
+  .bar span { display: block; height: 100%; background: var(--sun); }
+  .who-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .who-row .tick { flex: 1 1 200px; }
+  .contact { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 8px 0; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .chip { display: inline-block; font-size: .75rem; font-weight: 900; border-radius: 99px; padding: 2px 9px; background: #e9eff6; margin-right: 4px; }
+  .chip.red { background: #fbe4dd; color: #7a2a17; }
+  .row { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; margin: 8px 0; }
+  .row input { width: auto; margin-top: 4px; }
+  .linkbtn { background: none; border: 0; font: inherit; font-weight: 800; color: var(--brick); cursor: pointer; padding: 0; }
+  .linkbtn.red { color: #8a3a22; }
+  textarea { min-height: 80px; }
+  .sticky-save { position: sticky; bottom: 0; background: linear-gradient(transparent, #f5f8fc 30%); padding: 18px 0 8px; }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="../index.html" aria-label="Show-Me Neighbors home">
+      <span class="brand-name" role="img" aria-label="Show-Me Neighbors"><span class="w1">Sh<svg class="hdot" viewBox="0 0 60.2 54" aria-hidden="true"><circle cx="30.1" cy="27" r="27" fill="#eb9d1c"/><path transform="translate(3.1 0) scale(.54)" d="M50 78 C30 64 20 54 20 41 C20 31 28 24 37 24 C43 24 47.5 27 50 31.5 C52.5 27 57 24 63 24 C72 24 80 31 80 41 C80 54 70 64 50 78 Z" fill="#fff"/></svg>w-Me</span> <span class="w2">Neighbors</span></span>
+    </a>
+    <div class="toplinks"><a href="../index.html#how">How it works</a><span id="who"></span></div>
+  </div>
+</header>
+<main class="wrap"><div class="box" id="app"><p class="muted">Loading...</p></div></main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function () {
+  var SB_URL = 'https://ubsupoboukcpbklvdkkq.supabase.co';
+  var SB_KEY = 'sb_publishable_02PKeFgkiaetde-La-uBKA_M9hhAHvG'; // public browser key; the server checks everything
+  var sb = supabase.createClient(SB_URL, SB_KEY);
+  var app = document.getElementById('app'), whoEl = document.getElementById('who');
+  var data = null, view = 'home', editId = null, contactFor = null, contactId = null;
+  var HELP = ['Company', 'Rides', 'Errands', 'Around the house', 'Meals', 'Tech help', 'Walks', 'Games and hobbies', 'Doctor appointments'];
+  var PETS = ['Dog', 'Cat', 'Other'];
+
+  function e(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  async function call(action, body) {
+    try {
+      var r = await sb.functions.invoke('families', { body: Object.assign({ action: action }, body || {}) });
+      if (r.error) { var j = null; try { j = await r.error.context.json(); } catch (x) {} return j || { ok: false, error: 'We could not reach Show-Me Neighbors. Please check your connection and try again.' }; }
+      return r.data;
+    } catch (x) { return { ok: false, error: 'We could not reach Show-Me Neighbors. Please check your connection and try again.' }; }
+  }
+  function busy(b, t) { if (b) { b.disabled = true; b.dataset.was = b.textContent; b.textContent = t || 'One moment...'; } }
+  function unbusy(b) { if (b) { b.disabled = false; b.textContent = b.dataset.was || b.textContent; } }
+  function say(id, text, kind) { var el = document.getElementById(id); if (el) el.innerHTML = text ? '<div class="msg ' + (kind || 'err') + '">' + e(text) + '</div>' : ''; }
+  function checks(name, opts, on) { on = on || []; return '<div>' + opts.map(function (o) { return '<label class="tick"><input type="checkbox" name="' + name + '" value="' + e(o) + '"' + (on.indexOf(o) >= 0 ? ' checked' : '') + '><span>' + e(o) + '</span></label>'; }).join('') + '</div>'; }
+  function radios(name, opts, on) { return '<div>' + opts.map(function (o) { return '<label class="tick"><input type="radio" name="' + name + '" value="' + e(o) + '"' + (o === on ? ' checked' : '') + '><span>' + e(o) + '</span></label>'; }).join('') + '</div>'; }
+  function person(id) { return data.people.filter(function (p) { return p.id === id; })[0]; }
+  function nameOf(p) { return (p.preferred || p.first_name) + ' ' + p.last_name; }
+  function filled(p) {
+    var parts = [p.street && p.city, (p.help || []).length, p.interests, p.good_to_know, p.arrival, (p.contacts || []).some(function (c) { return c.emergency; })];
+    var n = parts.filter(Boolean).length; return { n: n, of: parts.length, pct: Math.round(100 * n / parts.length) };
+  }
+
+  // ---------- not signed in ----------
+  function signInBox(note) {
+    return '<div class="card"><h2>Already have an account?</h2><p class="muted">Enter your email and we will send you a link to sign in. No password needed.</p>' +
+      '<form id="lf"><div class="field"><label for="lf-em">Email</label><input id="lf-em" type="email" autocomplete="email" required></div><button class="btn btn-ghost">Email me a link</button></form><div id="lf-msg">' + (note || '') + '</div></div>';
+  }
+  function startScreen(note) {
+    return '<div class="card"><h1 style="font-size:2rem;margin-top:0">Make your family account</h1><p>It is free and takes about 2 minutes. Then tell us a little about the person you are booking for, so their Neighbor can feel like a friend from the first hello.</p>' + (note || '') + '</div>' +
+      '<form id="sf" class="card" novalidate><div style="position:absolute;left:-9999px" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div>' +
+      '<fieldset class="field ticks"><legend>Who are the visits for?</legend><div class="who-row"><label class="tick"><input type="radio" name="is_for" value="A loved one" checked><span>Someone I love</span></label><label class="tick"><input type="radio" name="is_for" value="Me"><span>Me</span></label></div></fieldset>' +
+      '<div class="grid-2"><div class="field"><label for="s-first">Your first name</label><input id="s-first" autocomplete="given-name"></div><div class="field"><label for="s-last">Your last name</label><input id="s-last" autocomplete="family-name"></div></div>' +
+      '<div class="grid-2" id="lo-names"><div class="field"><label for="s-pfirst">Their first name</label><input id="s-pfirst" placeholder="Like Dorothy"></div><div class="field"><label for="s-plast">Their last name</label><input id="s-plast"></div></div>' +
+      '<div class="grid-2"><div class="field"><label for="s-email">Your email</label><input id="s-email" type="email" autocomplete="email"></div><div class="field"><label for="s-phone">Your mobile phone</label><input id="s-phone" type="tel" autocomplete="tel"></div></div>' +
+      '<div class="field"><label for="s-zip">ZIP code where the visits will be</label><input id="s-zip" inputmode="numeric" maxlength="5"></div>' +
+      '<div class="field"><label for="s-heard">How did you hear about us?</label><select id="s-heard"><option value="">Choose one</option><option>Friend or family</option><option>Facebook or social media</option><option>Online search</option><option>Doctor, church or community group</option><option>Flyer or newspaper</option><option>Other</option></select></div>' +
+      '<p class="form-consent">By making an account you agree Show-Me Neighbors may email and text you about your account and visits. Message and data rates may apply. See our <a href="../privacy.html">privacy policy</a>.</p>' +
+      '<button class="btn btn-primary" style="width:100%">Make my account</button><div id="sf-msg"></div></form>' + signInBox();
+  }
+
+  // ---------- signed in ----------
+  function homeScreen(note) {
+    var f = data.family;
+    var h = '<h1 style="font-size:2rem;margin-top:0">Hi, ' + e(f.first_name) + '</h1>' + (note || '');
+    h += data.bookings_open
+      ? '<div class="card"><h2>Book a visit</h2><p>Booking is coming to this page next.</p></div>'
+      : '<div class="msg info" style="font-weight:600;margin:0 0 16px"><strong>Booking opens soon.</strong> We are welcoming our first Neighbors now. Finish your profile below, and we will email you the moment you can book your first visit.</div>';
+    h += '<h2 style="margin:22px 0 10px">' + (data.people.length > 1 ? 'The people you book for' : 'Who the visits are for') + '</h2>';
+    data.people.forEach(function (p) {
+      var fl = filled(p), init = (p.preferred || p.first_name || '?').charAt(0).toUpperCase();
+      h += '<div class="card"><div class="person"><div style="display:flex;gap:14px;align-items:center"><div class="initial">' + e(init) + '</div><div><strong style="font-size:1.15rem">' + e(nameOf(p)) + '</strong>' + (p.is_self ? ' <span class="chip">You</span>' : '') +
+        '<div class="muted" style="font-size:.92rem">' + e([p.city, p.zip].filter(Boolean).join(', ')) + (p.area === 'Not yet served' ? ' <span class="chip red">Not in our area yet</span>' : '') + '</div></div></div>' +
+        '<button class="btn ' + (fl.pct < 100 ? 'btn-primary' : 'btn-ghost') + ' btn-small" data-edit="' + p.id + '">' + (fl.pct < 100 ? 'Finish profile' : 'Edit profile') + '</button></div>' +
+        '<div class="bar" aria-hidden="true"><span style="width:' + fl.pct + '%"></span></div><div class="muted" style="font-size:.88rem">Profile ' + (fl.pct < 100 ? fl.n + ' of ' + fl.of + ' parts done' : 'complete. Thank you!') + '</div></div>';
+    });
+    if (data.people.length < 6) h += '<button class="btn btn-ghost" data-edit="new">Add another person</button>';
+    h += '<div class="card" style="margin-top:22px"><h2>Your details</h2><p style="margin:0">' + e(f.first_name + ' ' + f.last_name) + '<br>' + e(f.email) + (f.phone ? '<br>' + e(f.phone) : '') + '</p><button class="linkbtn" style="margin-top:10px" data-v="me">Edit my details</button></div>';
+    return h;
+  }
+  function meScreen() {
+    var f = data.family;
+    return '<button class="back" data-v="home">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">Your details</h1><form id="mf" class="card">' +
+      '<div class="grid-2"><div class="field"><label for="m-first">First name</label><input id="m-first" value="' + e(f.first_name) + '"></div><div class="field"><label for="m-last">Last name</label><input id="m-last" value="' + e(f.last_name) + '"></div></div>' +
+      '<div class="field"><label for="m-phone">Mobile phone</label><input id="m-phone" type="tel" value="' + e(f.phone || '') + '"></div>' +
+      '<p class="muted" style="font-size:.92rem">Your email is ' + e(f.email) + '. To change it, reply to any of our emails.</p><button class="btn btn-primary">Save</button><div id="mf-msg"></div></form>';
+  }
+  function personScreen() {
+    var p = editId === 'new' ? { first_name: '', last_name: '', help: [], pets: [], gender_pref: 'No preference', contacts: [] } : person(editId);
+    var they = p.is_self ? 'you' : (p.preferred || p.first_name || 'they');
+    var h = '<button class="back" data-v="home">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">' + (editId === 'new' ? 'Add a person' : 'About ' + e(p.is_self ? 'you' : (p.preferred || p.first_name))) + '</h1>' +
+      '<p class="muted">This helps us send the right Neighbor and helps them feel like a friend from the first visit. Only you, our team and the Neighbor visiting can see it.</p>' +
+      '<form id="pf" novalidate><div class="card"><h2>The basics</h2>' +
+      '<div class="grid-2"><div class="field"><label for="p-first">First name</label><input id="p-first" value="' + e(p.first_name === 'Your loved one' ? '' : p.first_name) + '"></div><div class="field"><label for="p-last">Last name</label><input id="p-last" value="' + e(p.last_name) + '"></div></div>' +
+      '<div class="grid-2"><div class="field"><label for="p-pref">Name ' + (p.is_self ? 'you go' : 'they go') + ' by (optional)</label><input id="p-pref" value="' + e(p.preferred || '') + '" placeholder="Like Dot or Mr. Jim"></div><div class="field"><label for="p-phone">' + (p.is_self ? 'Your' : 'Their') + ' phone (optional)</label><input id="p-phone" type="tel" value="' + e(p.phone || '') + '"></div></div>' +
+      '<div class="field"><label for="p-street">Street address where the visits will be</label><input id="p-street" autocomplete="street-address" value="' + e(p.street || '') + '"></div>' +
+      '<div class="grid-2"><div class="field"><label for="p-city">City</label><input id="p-city" value="' + e(p.city || '') + '"></div><div class="field"><label for="p-zip">ZIP code</label><input id="p-zip" inputmode="numeric" maxlength="5" value="' + e(p.zip || '') + '"></div></div></div>' +
+      '<div class="card"><h2>What would help most?</h2><fieldset class="field ticks"><legend>Pick any.</legend>' + checks('help', HELP, p.help) + '</fieldset>' +
+      '<p class="muted" style="font-size:.92rem;margin:6px 0 0">Neighbors offer friendly, everyday help. They never give personal care like bathing, dressing or help in the bathroom, never handle medicine, and never lift anyone.</p></div>' +
+      '<div class="card"><h2>Matching</h2><fieldset class="field ticks"><legend>Would ' + e(they) + ' like a Neighbor who is...</legend>' + radios('gender_pref', ['No preference', 'A woman', 'A man'], p.gender_pref || 'No preference') + '</fieldset>' +
+      '<fieldset class="field ticks"><legend>Any pets at home?</legend>' + checks('pets', PETS, p.pets) + '</fieldset>' +
+      '<div class="field"><label for="p-petnotes">About the pets (optional)</label><input id="p-petnotes" value="' + e(p.pet_notes || '') + '" placeholder="Like a friendly old beagle named Max"></div>' +
+      '<div class="field"><label for="p-int">What does ' + e(they) + ' enjoy?</label><textarea id="p-int" placeholder="Card games, gardening, old Westerns, the Cardinals, church, talking about grandkids...">' + e(p.interests || '') + '</textarea></div></div>' +
+      '<div class="card"><h2>Good to know</h2><div class="field"><label for="p-know">Anything a visitor should know?</label><textarea id="p-know" placeholder="Hard of hearing on the left side, uses a walker, likes things done a certain way, memory is not what it was...">' + e(p.good_to_know || '') + '</textarea></div>' +
+      '<div class="field"><label for="p-arr">Getting there</label><textarea id="p-arr" placeholder="Park in the driveway, use the side door, knock loudly...">' + e(p.arrival || '') + '</textarea></div></div>' +
+      '<div class="sticky-save"><button class="btn btn-primary" style="width:100%">Save</button><div id="pf-msg"></div></div></form>';
+    if (editId !== 'new') {
+      h += '<div class="card"><h2>Contacts</h2><p class="muted" style="margin-top:0">Who should we call in an emergency (after 911), and who would like visit notes and updates?</p>' +
+        (p.contacts.length ? p.contacts.map(function (c) {
+          return '<div class="contact"><div><strong>' + e(c.name) + '</strong>' + (c.relation ? ' <span class="muted">(' + e(c.relation) + ')</span>' : '') + '<br><span class="muted" style="font-size:.92rem">' + e([c.phone, c.email].filter(Boolean).join(' · ')) + '</span><br>' +
+            (c.emergency ? '<span class="chip red">Emergency contact</span>' : '') + (c.gets_updates ? '<span class="chip">Gets visit updates</span>' : '') + '</div><div><button class="linkbtn" data-cedit="' + c.id + '">Edit</button></div></div>';
+        }).join('') : '<p><strong>No contacts yet.</strong> Please add at least one emergency contact.</p>') +
+        '<button class="btn btn-ghost btn-small" data-cedit="new">Add a contact</button></div>';
+      if (!p.is_self && data.people.length > 1) h += '<p style="text-align:center"><button class="linkbtn red" data-del="' + p.id + '">Remove ' + e(nameOf(p)) + '</button></p>';
+    }
+    return h;
+  }
+  function contactScreen() {
+    var p = person(contactFor), c = contactId === 'new' ? { emergency: !p.contacts.some(function (x) { return x.emergency; }), gets_updates: true } : p.contacts.filter(function (x) { return x.id === contactId; })[0];
+    return '<button class="back" data-v="person">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">' + (contactId === 'new' ? 'Add a contact' : 'Edit contact') + '</h1><form id="cf" class="card" novalidate>' +
+      '<div class="grid-2"><div class="field"><label for="c-name">Name</label><input id="c-name" value="' + e(c.name || '') + '"></div><div class="field"><label for="c-rel">How they are related</label><input id="c-rel" value="' + e(c.relation || '') + '" placeholder="Daughter, neighbor, friend..."></div></div>' +
+      '<div class="grid-2"><div class="field"><label for="c-phone">Phone</label><input id="c-phone" type="tel" value="' + e(c.phone || '') + '"></div><div class="field"><label for="c-email">Email (optional)</label><input id="c-email" type="email" value="' + e(c.email || '') + '"></div></div>' +
+      '<label class="row"><input type="checkbox" id="c-em"' + (c.emergency ? ' checked' : '') + '> <span><strong>Emergency contact.</strong> If something happens, the Neighbor calls 911 first, then us, and we call this person.</span></label>' +
+      '<label class="row"><input type="checkbox" id="c-up"' + (c.gets_updates ? ' checked' : '') + '> <span><strong>Send them visit notes and updates.</strong></span></label>' +
+      '<button class="btn btn-primary" style="margin-top:10px">Save contact</button>' + (contactId !== 'new' ? ' <button type="button" class="linkbtn red" style="margin-left:14px" data-cdel="' + c.id + '">Remove</button>' : '') + '<div id="cf-msg"></div></form>';
+  }
+
+  function render(note) {
+    if (!data) { app.innerHTML = startScreen(note); return toggleNames(); }
+    var v = { home: homeScreen, me: meScreen, person: personScreen, contact: contactScreen }[view] || homeScreen;
+    app.innerHTML = v(note);
+    window.scrollTo(0, 0);
+  }
+  function toggleNames() { var r = app.querySelector('[name=is_for]:checked'), b = document.getElementById('lo-names'); if (b && r) b.hidden = r.value === 'Me'; }
+  function header() {
+    whoEl.innerHTML = data ? '<button class="btn btn-ghost btn-small" id="out" style="margin-left:10px">Sign out</button>' : '';
+    var o = document.getElementById('out'); if (o) o.onclick = async function () { await sb.auth.signOut(); data = null; view = 'home'; header(); render(); };
+  }
+  function got(r, okNote, back) {
+    if (!r || !r.ok) return false;
+    data = r; if (back) view = back; header(); render(okNote ? '<div class="msg ok" style="margin:0 0 16px">' + e(okNote) + '</div>' : ''); return true;
+  }
+
+  async function start() {
+    var t = new URLSearchParams(location.search).get('t');
+    if (t) {
+      history.replaceState(null, '', location.pathname);
+      var v = await sb.auth.verifyOtp({ token_hash: t, type: 'email' });
+      if (v.error) v = await sb.auth.verifyOtp({ token_hash: t, type: 'magiclink' });
+      if (v.error) return render('<div class="msg err">That link has expired or was already used. Enter your email under "Already have an account?" and we will send a new one.</div>');
+    }
+    var s = (await sb.auth.getSession()).data.session;
+    if (!s) return render();
+    var r = await call('me');
+    if (r && r.ok) {
+      data = r; header();
+      var first = data.people[0];
+      if (first && filled(first).n === 0) { view = 'person'; editId = first.id; }
+      return render();
+    }
+    if (r && r.none) { await sb.auth.signOut(); return render('<div class="msg err">' + e(r.error) + '. You can make an account below.</div>'); }
+    render(r && !r.signin ? '<div class="msg err">' + e(r.error) + '</div>' : '');
+  }
+
+  app.addEventListener('change', function (ev) { if (ev.target.name === 'is_for') toggleNames(); });
+  app.addEventListener('click', async function (ev) {
+    var t = ev.target.closest('[data-v],[data-edit],[data-cedit],[data-del],[data-cdel]'); if (!t) return;
+    if (t.dataset.v) { view = t.dataset.v; return render(); }
+    if (t.dataset.edit) { editId = t.dataset.edit; view = 'person'; return render(); }
+    if (t.dataset.cedit) { contactFor = editId; contactId = t.dataset.cedit; view = 'contact'; return render(); }
+    if (t.dataset.del) {
+      if (t.dataset.sure !== '1') { t.dataset.sure = '1'; t.textContent = 'Click again to remove them and their contacts'; return; }
+      busy(t, 'Removing...'); var r = await call('delete_person', { id: t.dataset.del });
+      if (!got(r, 'Removed.', 'home')) { unbusy(t); alertMsg(r); }
+      return;
+    }
+    if (t.dataset.cdel) {
+      if (t.dataset.sure !== '1') { t.dataset.sure = '1'; t.textContent = 'Click again to remove'; return; }
+      busy(t, 'Removing...'); var r2 = await call('delete_contact', { id: t.dataset.cdel });
+      if (!got(r2, 'Contact removed.', 'person')) { unbusy(t); say('cf-msg', (r2 && r2.error) || 'That did not work.'); }
+    }
+  });
+  function alertMsg(r) { var d = document.createElement('div'); d.className = 'msg err'; d.textContent = (r && r.error) || 'That did not work. Please try again.'; app.prepend(d); }
+  app.addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var f = ev.target, btn = f.querySelector('button.btn-primary, button.btn');
+    var g = function (id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+    var all = function (n) { return Array.prototype.map.call(f.querySelectorAll('[name="' + n + '"]:checked'), function (c) { return c.value; }); };
+    if (f.id === 'lf') {
+      busy(btn, 'Sending...'); var r0 = await call('link', { email: g('lf-em') }); unbusy(btn);
+      return say('lf-msg', r0 && r0.ok ? 'If we have an account for that email, a link is on its way. It works once and expires in an hour.' : ((r0 && r0.error) || 'That did not work. Please try again.'), r0 && r0.ok ? 'ok' : 'err');
+    }
+    if (f.id === 'sf') {
+      var isFor = (f.querySelector('[name=is_for]:checked') || {}).value;
+      var body = { is_for: isFor, first_name: g('s-first'), last_name: g('s-last'), person_first: g('s-pfirst'), person_last: g('s-plast'), email: g('s-email'), phone: g('s-phone'), zip: g('s-zip'), heard: g('s-heard'), website: f.website.value };
+      var problem = !body.first_name || !body.last_name ? 'Please add your first and last name.' : (isFor !== 'Me' && !body.person_first) ? 'Please add the first name of the person the visits are for.' : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email) ? 'Please check your email address.' : !/^\d{5}$/.test(body.zip) ? 'Please add the 5-digit ZIP code where the visits will be.' : '';
+      if (problem) return say('sf-msg', problem);
+      busy(btn, 'Making your account...'); var r = await call('start', body); unbusy(btn);
+      if (!r || !r.ok) return say('sf-msg', (r && r.error) || 'That did not work. Please try again.');
+      app.innerHTML = '<div class="card"><h1 style="font-size:2rem;margin-top:0">' + (r.already ? 'Welcome back!' : 'Check your email') + '</h1><p>We sent a link to <strong>' + e(body.email) + '</strong>. Tap it to ' + (r.already ? 'sign in' : 'finish your profile') + '.</p>' +
+        (r.area === 'Not yet served' ? '<p>We are not in ' + e(body.zip) + ' yet, but we are growing across Missouri. Your account is saved, and we will email you as soon as Neighbors are available near you.</p>' : '') +
+        '<p class="muted">Do not see it? Check your spam or promotions folder. The email comes from hello@showmeneighbors.com.</p></div>';
+      return window.scrollTo(0, 0);
+    }
+    if (f.id === 'mf') {
+      busy(btn, 'Saving...'); var r1 = await call('save_family', { first_name: g('m-first'), last_name: g('m-last'), phone: g('m-phone') }); unbusy(btn);
+      if (!got(r1, 'Saved.', 'home')) say('mf-msg', (r1 && r1.error) || 'That did not save. Please try again.');
+      return;
+    }
+    if (f.id === 'pf') {
+      var pb = { first_name: g('p-first'), last_name: g('p-last'), preferred: g('p-pref'), phone: g('p-phone'), street: g('p-street'), city: g('p-city'), zip: g('p-zip'), help: all('help'), gender_pref: (f.querySelector('[name=gender_pref]:checked') || {}).value, pets: all('pets'), pet_notes: g('p-petnotes'), interests: g('p-int'), good_to_know: g('p-know'), arrival: g('p-arr') };
+      if (editId !== 'new') pb.id = editId;
+      if (!pb.first_name || !pb.last_name) return say('pf-msg', 'Please add their first and last name.');
+      if (!/^\d{5}$/.test(pb.zip)) return say('pf-msg', 'Please add the 5-digit ZIP code where the visits will be.');
+      busy(btn, 'Saving...'); var r3 = await call('save_person', pb); unbusy(btn);
+      if (!r3 || !r3.ok) return say('pf-msg', (r3 && r3.error) || 'That did not save. Please try again.');
+      data = r3;
+      if (editId === 'new') { editId = data.people[data.people.length - 1].id; }
+      view = 'person'; render('<div class="msg ok" style="margin:0 0 16px">Saved.' + (person(editId).contacts.length ? '' : ' Next, add an emergency contact at the bottom of this page.') + '</div>');
+      return;
+    }
+    if (f.id === 'cf') {
+      var cb = { loved_one_id: contactFor, name: g('c-name'), relation: g('c-rel'), phone: g('c-phone'), email: g('c-email'), emergency: document.getElementById('c-em').checked, gets_updates: document.getElementById('c-up').checked };
+      if (contactId !== 'new') cb.id = contactId;
+      if (!cb.name) return say('cf-msg', 'Please add their name.');
+      if (!cb.phone && !cb.email) return say('cf-msg', 'Please add a phone number or email.');
+      if (cb.emergency && !cb.phone) return say('cf-msg', 'An emergency contact needs a phone number.');
+      busy(btn, 'Saving...'); var r4 = await call('save_contact', cb); unbusy(btn);
+      if (!got(r4, 'Contact saved.', 'person')) say('cf-msg', (r4 && r4.error) || 'That did not save. Please try again.');
+    }
+  });
+  start();
+})();
+</script>
+</body>
+</html>
