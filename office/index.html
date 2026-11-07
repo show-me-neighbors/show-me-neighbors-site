@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Office | Show-Me Neighbors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css?v=1107q">
+<link rel="icon" href="../assets/favicon.png" type="image/png">
+<style>
+  body { font-size: 16px; background: #f5f8fc; }
+  .top { background: var(--ink); color: #fff; }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 14px; }
+  .top .brand-name .w1 { color: #fff; } .top .brand-name .w2 { color: #a9cbe6; }
+  .tag { background: rgba(255,255,255,.14); border-radius: 99px; padding: 3px 10px; font-size: .72rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; margin-left: 10px; }
+  .who { font-size: .9rem; opacity: .9; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .who button { background: none; border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 99px; padding: 5px 12px; font: inherit; font-weight: 800; cursor: pointer; }
+  main { padding-block: 26px 60px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); }
+  .login { max-width: 440px; margin: 40px auto; }
+  .login input { margin-top: 6px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 16px 0 18px; }
+  .stat { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .stat .n { font-family: "Nunito", sans-serif; font-weight: 900; font-size: 2rem; line-height: 1.1; }
+  .stat.hot { border-color: var(--brick); background: #e3edf6; }
+  .bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .tabs button { font: inherit; font-weight: 800; font-size: .92rem; padding: 7px 14px; border-radius: 99px; border: 2px solid var(--line); background: #fff; cursor: pointer; }
+  .tabs button.on { border-color: var(--brick); background: #e3edf6; }
+  .bar select { width: auto; padding: 8px 10px; font-size: .92rem; }
+  .bar .spacer { flex: 1; }
+  .tablewrap { overflow-x: auto; background: #fff; border: 1px solid var(--line); border-radius: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; min-width: 900px; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { background: #f5f8fc; font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; }
+  tr:last-child td { border-bottom: 0; }
+  tr.new td:first-child { box-shadow: inset 4px 0 0 var(--sun); }
+  .kind { display: inline-block; font-size: .72rem; font-weight: 900; border-radius: 99px; padding: 2px 8px; background: #e9eff6; }
+  .area-out { color: #8a3a22; font-weight: 800; }
+  td select { width: auto; padding: 6px 8px; font-size: .88rem; }
+  td textarea { width: 220px; min-height: 54px; font-size: .88rem; padding: 6px 8px; }
+  .det { font-size: .86rem; color: var(--ink-soft); max-width: 340px; }
+  .det b { color: var(--ink); }
+  .muted { color: var(--ink-soft); }
+  .msg { padding: 12px 14px; border-radius: 12px; margin-top: 12px; font-weight: 700; }
+  .msg.ok { background: #e3f1e6; } .msg.err { background: #fbe4dd; color: #7a2a17; }
+  .saved { color: #2e7d4f; font-size: .78rem; font-weight: 800; }
+  @media (max-width: 760px) { .stats { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div><span class="brand-name" role="img" aria-label="Show-Me Neighbors"><span class="w1">Sh<svg class="hdot" viewBox="0 0 60.2 54" aria-hidden="true"><circle cx="30.1" cy="27" r="27" fill="#eb9d1c"/><path transform="translate(3.1 0) scale(.54)" d="M50 78 C30 64 20 54 20 41 C20 31 28 24 37 24 C43 24 47.5 27 50 31.5 C52.5 27 57 24 63 24 C72 24 80 31 80 41 C80 54 70 64 50 78 Z" fill="#fff"/></svg>w-Me</span> <span class="w2">Neighbors</span></span><span class="tag">Office</span></div>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+<main class="wrap" id="app"><p class="muted">Loading...</p></main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function () {
+  var SB_URL = 'https://ubsupoboukcpbklvdkkq.supabase.co';
+  var SB_KEY = 'sb_publishable_02PKeFgkiaetde-La-uBKA_M9hhAHvG'; // public browser key; the database rules decide what anyone can see
+  var sb = supabase.createClient(SB_URL, SB_KEY);
+  var app = document.getElementById('app'), who = document.getElementById('who');
+  var rows = [], tab = 'all', areaF = '', statusF = '', me = null;
+  var STATUSES = ['New', 'Contacted', 'Waitlist', 'Signed up', 'Not a fit'];
+  var KIND = { family: 'Family', neighbor: 'Neighbor applicant', quiz: 'Quiz' };
+  var LABELS = { 'for': 'For', help: 'Help with', hours: 'Hours a week', work: 'Now doing', times: 'Free', car: 'License and car', carry: 'Can carry groceries', why: 'Why', heard: 'Heard about us', q_for: 'Help is for', q_help: 'Needs', q_distance: 'Lives', q_social: 'Social life', q_matters: 'Matters most', result: 'Quiz result', name: 'Name' };
+
+  function e(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function when(iso) { var d = new Date(iso); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + '<br><span class="muted">' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) + '</span>'; }
+
+  function loginScreen(note, isErr) {
+    who.innerHTML = '';
+    app.innerHTML = '<div class="card login"><h1 style="font-size:1.8rem">Office sign in</h1><p class="muted">Enter your work email. We will email you a sign-in link. No password needed.</p>' +
+      '<form id="lf"><label class="lbl" for="em"><strong>Email</strong></label><input id="em" type="email" autocomplete="email" required><button class="btn btn-primary" style="margin-top:14px;width:100%">Email me a sign-in link</button></form>' +
+      (note ? '<div class="msg ' + (isErr ? 'err' : 'ok') + '">' + e(note) + '</div>' : '') + '</div>';
+    document.getElementById('lf').addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var email = document.getElementById('em').value.trim();
+      var btn = ev.target.querySelector('button'); btn.disabled = true; btn.textContent = 'Sending...';
+      var r = await sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname } });
+      if (r.error) loginScreen('That did not work: ' + r.error.message + '. Only office team emails can sign in.', true);
+      else loginScreen('Check your email for the sign-in link. It works once and expires in an hour.');
+    });
+  }
+
+  async function start() {
+    var s = (await sb.auth.getSession()).data.session;
+    if (!s) return loginScreen();
+    me = s.user.email;
+    var ok = await sb.from('office_users').select('email').limit(1);
+    if (ok.error || !ok.data.length) {
+      await sb.auth.signOut();
+      return loginScreen('This email does not have office access. Ask Samantha to add you.', true);
+    }
+    who.innerHTML = '<span>' + e(me) + '</span><button id="out">Sign out</button>';
+    document.getElementById('out').onclick = async function () { await sb.auth.signOut(); loginScreen('You are signed out.'); };
+    load();
+  }
+
+  async function load() {
+    var r = await sb.from('signups').select('*').order('created_at', { ascending: false }).limit(1000);
+    if (r.error) { app.innerHTML = '<div class="msg err">Could not load sign-ups: ' + e(r.error.message) + '</div>'; return; }
+    rows = r.data; render();
+  }
+
+  function details(x) {
+    var d = x.details || {}, bits = [];
+    Object.keys(d).forEach(function (k) { if (d[k]) bits.push('<b>' + e(LABELS[k] || k) + ':</b> ' + e(d[k])); });
+    return bits.join('<br>') || '<span class="muted">No extra answers</span>';
+  }
+
+  function render() {
+    var areas = Array.from(new Set(rows.map(function (x) { return x.area; }))).filter(Boolean).sort();
+    var list = rows.filter(function (x) { return (tab === 'all' || x.kind === tab) && (!areaF || x.area === areaF) && (!statusF || x.status === statusF); });
+    var count = function (k) { return rows.filter(function (x) { return x.kind === k; }).length; };
+    var nNew = rows.filter(function (x) { return x.status === 'New'; }).length;
+    var h = '<h1 style="font-size:1.9rem;margin-bottom:0">Sign-ups</h1><p class="muted" style="margin:4px 0 0">Everyone who joined the list, applied to be a Neighbor or took the quiz on the website.</p>' +
+      '<div class="stats"><div class="stat' + (nNew ? ' hot' : '') + '"><div class="small muted">New, not contacted yet</div><div class="n">' + nNew + '</div></div>' +
+      '<div class="stat"><div class="small muted">Families</div><div class="n">' + count('family') + '</div></div>' +
+      '<div class="stat"><div class="small muted">Neighbor applicants</div><div class="n">' + count('neighbor') + '</div></div>' +
+      '<div class="stat"><div class="small muted">Quiz answers</div><div class="n">' + count('quiz') + '</div></div></div>' +
+      '<div class="bar"><div class="tabs">' + [['all', 'All'], ['family', 'Families'], ['neighbor', 'Neighbor applicants'], ['quiz', 'Quiz']].map(function (t) { return '<button data-tab="' + t[0] + '" class="' + (tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join(' ') + '</div>' +
+      '<select id="af" aria-label="Area"><option value="">All areas</option>' + areas.map(function (a) { return '<option' + (a === areaF ? ' selected' : '') + '>' + e(a) + '</option>'; }).join('') + '</select>' +
+      '<select id="sf" aria-label="Status"><option value="">Any status</option>' + STATUSES.map(function (st) { return '<option' + (st === statusF ? ' selected' : '') + '>' + st + '</option>'; }).join('') + '</select>' +
+      '<span class="spacer"></span><button class="btn btn-ghost btn-small" id="rf">Refresh</button><button class="btn btn-ghost btn-small" id="csv">Download list</button></div>';
+    h += list.length ? '<div class="tablewrap"><table><thead><tr><th>When</th><th>Who</th><th>Where</th><th>Answers</th><th>Status</th><th>Notes</th></tr></thead><tbody>' + list.map(function (x) {
+      return '<tr class="' + (x.status === 'New' ? 'new' : '') + '"><td>' + when(x.created_at) + '</td>' +
+        '<td><span class="kind">' + KIND[x.kind] + '</span><br><strong>' + e(x.name || '(no name)') + '</strong><br>' + e(x.email) + (x.phone ? '<br>' + e(x.phone) : '') + '</td>' +
+        '<td>' + e(x.zip) + '<br><span class="' + (x.area === 'Not yet served' ? 'area-out' : 'muted') + '">' + e(x.area || '') + '</span></td>' +
+        '<td class="det">' + details(x) + '</td>' +
+        '<td><select data-st="' + x.id + '">' + STATUSES.map(function (st) { return '<option' + (st === x.status ? ' selected' : '') + '>' + st + '</option>'; }).join('') + '</select>' + (x.updated_by ? '<div class="small muted" style="margin-top:4px">by ' + e(x.updated_by.split('@')[0]) + '</div>' : '') + '</td>' +
+        '<td><textarea data-nt="' + x.id + '" placeholder="Called, left message...">' + e(x.notes || '') + '</textarea><div class="saved" id="sv-' + x.id + '"></div></td></tr>';
+    }).join('') + '</tbody></table></div>' : '<div class="card">No sign-ups here yet.</div>';
+    app.innerHTML = h;
+  }
+
+  async function save(id, patch) {
+    patch.updated_at = new Date().toISOString(); patch.updated_by = me;
+    var r = await sb.from('signups').update(patch).eq('id', id).select('id');
+    var el = document.getElementById('sv-' + id);
+    if (r.error || !r.data || !r.data.length) { if (el) { el.style.color = '#7a2a17'; el.textContent = 'Not saved. Refresh and try again.'; } return false; }
+    var row = rows.filter(function (x) { return x.id === id; })[0]; Object.assign(row, patch);
+    if (el) { el.style.color = ''; el.textContent = 'Saved'; setTimeout(function () { el.textContent = ''; }, 2000); }
+    return true;
+  }
+
+  function csv() {
+    var keys = ['created_at', 'kind', 'status', 'name', 'email', 'phone', 'zip', 'area', 'notes'];
+    var lines = [keys.concat('answers').join(',')].concat(rows.map(function (x) {
+      return keys.map(function (k) { return x[k]; }).concat(JSON.stringify(x.details || {})).map(function (v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; }).join(',');
+    }));
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
+    a.download = 'show-me-neighbors-signups-' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
+  }
+
+  app.addEventListener('click', function (ev) {
+    var t = ev.target;
+    if (t.dataset.tab) { tab = t.dataset.tab; return render(); }
+    if (t.id === 'rf') return load();
+    if (t.id === 'csv') return csv();
+  });
+  app.addEventListener('change', async function (ev) {
+    var t = ev.target;
+    if (t.id === 'af') { areaF = t.value; return render(); }
+    if (t.id === 'sf') { statusF = t.value; return render(); }
+    if (t.dataset.st) { if (await save(t.dataset.st, { status: t.value })) render(); return; }
+    if (t.dataset.nt) save(t.dataset.nt, { notes: t.value.trim() });
+  });
+  sb.auth.onAuthStateChange(function (evt) { if (evt === 'SIGNED_IN' && !me) start(); });
+  setInterval(function () { if (me && document.visibilityState === 'visible' && !document.activeElement.matches('textarea')) load(); }, 60000);
+  start();
+})();
+</script>
+</body>
+</html>

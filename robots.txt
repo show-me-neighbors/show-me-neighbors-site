@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /office/
+Allow: /
+Sitemap: https://showmeneighbors.com/sitemap.xml
