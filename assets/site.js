@@ -59,19 +59,18 @@
       var zip = zipEl.value.trim();
       if (!/^\d{5}$/.test(zip)) { zipEl.focus(); zipEl.style.borderColor = '#c4553a'; return; }
       var help = Array.prototype.map.call(picker.querySelectorAll('input[name=help]:checked'), function (c) { return c.value; });
-      var fz = document.getElementById('f-zip'); if (fz) fz.value = zip;
-      var fh = document.getElementById('f-help'); if (fh) fh.value = help.join(', ');
+      var cta = document.getElementById('family-cta'); if (cta) cta.href = 'family/?zip=' + zip;
       var msg = document.getElementById('area-msg');
       if (msg) {
         var area = areaFor(zip), near = !!area;
         msg.hidden = false;
         msg.className = 'area-msg' + (near ? '' : ' far');
         msg.textContent = near
-          ? 'Good news! ' + zip + ' is in our first ' + area + '. Join the list and you will be one of the first families to book.'
-          : 'We are not near ' + zip + ' yet. Join the list and we will tell you the moment Neighbors are available there.';
+          ? 'Good news! ' + zip + ' is in our first ' + area + '. Make your free account and you will be one of the first families to book.'
+          : 'We are not near ' + zip + ' yet. Make your free account and we will tell you the moment Neighbors are available there.';
       }
       document.getElementById('signup').scrollIntoView({ behavior: 'smooth' });
-      var fn = document.getElementById('f-name'); if (fn) setTimeout(function () { fn.focus({ preventScroll: true }); }, 500);
+      if (cta) setTimeout(function () { cta.focus({ preventScroll: true }); }, 500);
     });
   }
 

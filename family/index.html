@@ -7,7 +7,7 @@
 <meta name="description" content="Make your Show-Me Neighbors family account and tell us about the person you are booking friendly visits for.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/styles.css?v=1107q">
+<link rel="stylesheet" href="../assets/styles.css?v=1108a">
 <link rel="icon" href="../assets/favicon.png" type="image/png"><link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <style>
   body { background: #f5f8fc; }
@@ -167,11 +167,12 @@
   }
 
   function render(note) {
-    if (!data) { app.innerHTML = startScreen(note); return toggleNames(); }
+    if (!data) { app.innerHTML = startScreen(note); prefill(); return toggleNames(); }
     var v = { home: homeScreen, me: meScreen, person: personScreen, contact: contactScreen }[view] || homeScreen;
     app.innerHTML = v(note);
     window.scrollTo(0, 0);
   }
+  function prefill() { var z = new URLSearchParams(location.search).get('zip'), el = document.getElementById('s-zip'); if (el && z && /^\d{5}$/.test(z) && !el.value) el.value = z; }
   function toggleNames() { var r = app.querySelector('[name=is_for]:checked'), b = document.getElementById('lo-names'); if (b && r) b.hidden = r.value === 'Me'; }
   function header() {
     whoEl.innerHTML = data ? '<button class="btn btn-ghost btn-small" id="out" style="margin-left:10px">Sign out</button>' : '';

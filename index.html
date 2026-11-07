@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=1107q">
-<link rel="icon" href="assets/favicon.png?v=1107q" type="image/png"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=1107q">
+<link rel="stylesheet" href="assets/styles.css?v=1108a">
+<link rel="icon" href="assets/favicon.png?v=1108a" type="image/png"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=1108a">
 </head>
 <body>
 
@@ -47,7 +47,7 @@
           <input id="pick-zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="Your ZIP code">
           <button class="btn btn-primary" type="submit">Check my area</button>
         </div>
-        <p class="picker-fine">Free to join the list · about 1 minute · <a href="#how">See how it works</a></p>
+        <p class="picker-fine">Free account · about 2 minutes · <a href="#how">See how it works</a></p>
       </form>
       <ul class="trust-strip left">
         <li><svg aria-hidden="true"><use href="assets/icons.svg#tick"/></svg>Background-checked</li>
@@ -437,7 +437,7 @@
       </details>
       <details data-cat="how">
         <summary>Where are you?</summary>
-        <p>We are starting in three areas at once: Springfield (with Nixa, Ozark and nearby towns), Branson and Table Rock Lake, and St. Charles County (St. Charles, St. Peters, O'Fallon, Wentzville and nearby). Next we plan to open more of St. Louis, Kansas City and Columbia, one area at a time. Join the list below and we will tell you when we reach your neighborhood.</p>
+        <p>We are starting in three areas at once: Springfield (with Nixa, Ozark and nearby towns), Branson and Table Rock Lake, and St. Charles County (St. Charles, St. Peters, O'Fallon, Wentzville and nearby). Next we plan to open more of St. Louis, Kansas City and Columbia, one area at a time. Make your free account below and we will tell you when we reach your neighborhood.</p>
       </details>
       <details data-cat="how">
         <summary>Do you need to come to our home first?</summary>
@@ -493,42 +493,14 @@
     <div class="signup">
       <div>
         <div class="eyebrow">Be one of our first families</div>
-        <h2>See if we are in your neighborhood</h2>
-        <p class="lead">We are opening in Springfield, Branson / Table Rock Lake and St. Charles County first. Leave your details and we will let you know the day you can book.</p>
+        <h2>Make your free family account</h2>
+        <p class="lead">We are opening in Springfield, Branson / Table Rock Lake and St. Charles County first. Make your account now and tell us a little about your loved one, so you are ready to book the day visits open.</p>
       </div>
-      <form id="family-form" data-form="family" novalidate>
+      <div class="center" style="align-self:center">
         <div class="area-msg" id="area-msg" role="status" hidden></div>
-        <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div>
-        <div class="row">
-          <div class="field"><label for="f-name">Your name</label><input id="f-name" name="name" autocomplete="name" required></div>
-          <div class="field"><label for="f-zip">ZIP code of the person who needs help</label><input id="f-zip" name="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required></div>
-        </div>
-        <div class="row">
-          <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
-          <div class="field"><label for="f-phone">Phone (optional)</label><input id="f-phone" name="phone" type="tel" autocomplete="tel"></div>
-        </div>
-        <fieldset class="who">
-          <legend>Who would you like a Neighbor to help?</legend>
-          <label class="who-opt"><input type="radio" name="for" value="Me" required><span><strong>Me</strong>I would like a Neighbor for myself.</span></label>
-          <label class="who-opt"><input type="radio" name="for" value="A loved one" checked><span><strong>A loved one</strong>I would like a Neighbor to help someone I love.</span></label>
-        </fieldset>
-        <fieldset class="help-pick">
-          <legend>What would you like help with? <span>Pick as many as you like.</span></legend>
-          <div class="pick-grid">
-            <label class="pick"><input type="checkbox" name="help" value="Company"><span><svg aria-hidden="true"><use href="assets/icons.svg#chat"/></svg>Company</span></label>
-            <label class="pick"><input type="checkbox" name="help" value="Rides"><span><svg aria-hidden="true"><use href="assets/icons.svg#car"/></svg>Rides</span></label>
-            <label class="pick"><input type="checkbox" name="help" value="Errands"><span><svg aria-hidden="true"><use href="assets/icons.svg#bag"/></svg>Errands</span></label>
-            <label class="pick"><input type="checkbox" name="help" value="Around the house"><span><svg aria-hidden="true"><use href="assets/icons.svg#home"/></svg>Around the house</span></label>
-            <label class="pick"><input type="checkbox" name="help" value="Meals"><span><svg aria-hidden="true"><use href="assets/icons.svg#meal"/></svg>Meals</span></label>
-            <label class="pick"><input type="checkbox" name="help" value="Tech help"><span><svg aria-hidden="true"><use href="assets/icons.svg#tablet"/></svg>Tech help</span></label>
-            <label class="pick"><input type="checkbox" name="help" value="Walks"><span><svg aria-hidden="true"><use href="assets/icons.svg#walk"/></svg>Walks</span></label>
-            <label class="pick"><input type="checkbox" name="help" value="Games and hobbies"><span><svg aria-hidden="true"><use href="assets/icons.svg#cards"/></svg>Games and hobbies</span></label>
-          </div>
-        </fieldset>
-        <button class="btn btn-primary" type="submit">Join the list</button>
-        <p class="form-consent">By sending this, you agree Show-Me Neighbors may contact you by email, text or phone about our service. Message and data rates may apply. Reply STOP to stop texts. See our <a href="privacy.html">privacy policy</a>.</p>
-        <div class="form-msg" id="family-msg" role="status">Thank you! We will be in touch as soon as we open near you.</div>
-      </form>
+        <a class="btn btn-primary" id="family-cta" href="family/" style="font-size:1.15rem;padding:16px 30px">Make my free family account</a>
+        <p class="form-consent" style="margin-top:12px">Free, and it takes about 2 minutes. Already have an account? <a href="family/">Sign in</a>.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -564,6 +536,6 @@
   </div>
 </footer>
 
-<script src="assets/site.js?v=1107q"></script>
+<script src="assets/site.js?v=1108a"></script>
 </body>
 </html>
