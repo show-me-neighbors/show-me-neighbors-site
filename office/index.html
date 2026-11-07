@@ -46,7 +46,21 @@
   .msg { padding: 12px 14px; border-radius: 12px; margin-top: 12px; font-weight: 700; }
   .msg.ok { background: #e3f1e6; } .msg.err { background: #fbe4dd; color: #7a2a17; }
   .saved { color: #2e7d4f; font-size: .78rem; font-weight: 800; }
-  @media (max-width: 760px) { .stats { grid-template-columns: 1fr 1fr; } }
+  .pages { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 2px solid var(--line); }
+  .pages a { font-weight: 900; text-decoration: none; color: var(--ink-soft); padding: 10px 14px; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+  .pages a.on { color: var(--ink); border-color: var(--sun); }
+  .pages .badge { background: #fbe4dd; color: #7a2a17; border-radius: 99px; padding: 1px 7px; font-size: .75rem; margin-left: 4px; }
+  .st { display: inline-block; font-size: .78rem; font-weight: 900; border-radius: 99px; padding: 3px 10px; background: #e9eff6; white-space: nowrap; }
+  .st.booked { background: #fff1d6; } .st.next { background: #e3edf6; } .st.done { background: #e3f1e6; } .st.closed { background: #f1f1f1; color: #666; }
+  .acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .acts button { font: inherit; font-size: .82rem; font-weight: 800; padding: 5px 10px; border-radius: 99px; border: 2px solid var(--line); background: #fff; cursor: pointer; }
+  .acts button.go { border-color: #2e7d4f; color: #2e7d4f; } .acts button.no { border-color: #b4532f; color: #8a3a22; }
+  details.ans summary { cursor: pointer; font-weight: 800; color: var(--brick); }
+  .set { display: grid; grid-template-columns: 1fr 260px; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: start; }
+  .set:last-child { border-bottom: 0; }
+  .set input, .set textarea { font-size: .95rem; }
+  .ok-line { color: #2e7d4f; font-weight: 800; }
+  @media (max-width: 760px) { .stats { grid-template-columns: 1fr 1fr; } .set { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -98,11 +112,108 @@
       return loginScreen('This email does not have office access. Ask Samantha to add you.', true);
     }
     who.innerHTML = '<span>' + e(me) + '</span><button id="out">Sign out</button>';
-    document.getElementById('out').onclick = async function () { await sb.auth.signOut(); loginScreen('You are signed out.'); };
+    document.getElementById('out').onclick = async function () { await sb.auth.signOut(); me = null; loginScreen('You are signed out.'); };
     load();
   }
 
+  // ---------- pages ----------
+  var page = (location.hash.slice(1) || 'signups'), nbrs = [], msgs = [], sets = [], openId = '';
+  var PAGES = [['signups', 'Sign-ups'], ['applicants', 'Neighbor applicants'], ['emails', 'Emails'], ['settings', 'Settings']];
+  function nav() {
+    var failed = msgs.filter(function (m) { return m.status === 'Failed'; }).length;
+    return '<nav class="pages">' + PAGES.map(function (p) { return '<a href="#' + p[0] + '" class="' + (page === p[0] ? 'on' : '') + '">' + p[1] + (p[0] === 'emails' && failed ? '<span class="badge">' + failed + ' failed</span>' : '') + '</a>'; }).join('') + '</nav>';
+  }
   async function load() {
+    var m = await sb.from('messages').select('*').order('at', { ascending: false }).limit(300);
+    msgs = m.error ? [] : m.data;
+    if (page === 'applicants') return loadApplicants();
+    if (page === 'emails') return renderEmails();
+    if (page === 'settings') return loadSettings();
+    return loadSignups();
+  }
+  window.addEventListener('hashchange', function () { page = location.hash.slice(1) || 'signups'; if (me) load(); });
+  async function fn(action, body) {
+    try {
+      var r = await sb.functions.invoke('neighbors', { body: Object.assign({ action: action }, body) });
+      if (r.error) { var j = null; try { j = await r.error.context.json(); } catch (x) {} return j || { ok: false, error: 'Could not reach the server' }; }
+      return r.data;
+    } catch (x) { return { ok: false, error: 'Could not reach the server' }; }
+  }
+  function whenLong(iso) { return new Date(iso).toLocaleString('en-US', { timeZone: 'America/Chicago', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+
+  // ---------- Neighbor applicants ----------
+  var nStatus = 'open';
+  var STAGE = { 'Applied': ['Needs to book interview', ''], 'Interview booked': ['Interview booked', 'booked'], 'Next steps': ['Doing course and agreement', 'next'], 'Waiting on checks': ['Waiting on checks', 'next'], 'Ready for approval': ['Ready for approval', 'done'], 'Approved': ['Approved', 'done'], 'Waitlist': ['Waitlist (outside our areas)', 'closed'], 'Paused': ['Paused', 'closed'], 'Not a fit': ['Not a fit', 'closed'], 'Withdrew': ['Withdrew', 'closed'] };
+  async function loadApplicants() {
+    var r = await sb.from('neighbors').select('*').order('created_at', { ascending: false }).limit(1000);
+    if (r.error) { app.innerHTML = nav() + '<div class="msg err">Could not load applicants: ' + e(r.error.message) + '</div>'; return; }
+    nbrs = r.data; renderApplicants();
+  }
+  function renderApplicants(flash) {
+    var closed = ['Waitlist', 'Not a fit', 'Withdrew', 'Paused'];
+    var list = nbrs.filter(function (n) { return nStatus === 'all' || (nStatus === 'open' ? closed.indexOf(n.status) < 0 : n.status === nStatus); });
+    var cnt = function (s) { return nbrs.filter(function (n) { return n.status === s; }).length; };
+    var upcoming = nbrs.filter(function (n) { return n.status === 'Interview booked'; }).sort(function (a, b) { return a.interview_at < b.interview_at ? -1 : 1; });
+    var h = nav() + '<h1 style="font-size:1.9rem;margin-bottom:0">Neighbor applicants</h1><p class="muted" style="margin:4px 0 0">Applicants book their own interview, take the course and sign the agreement on their own. Your only step: after each video interview, mark it Passed, Not a fit or No-show. The emails go out automatically.</p>' +
+      '<div class="stats"><div class="stat' + (upcoming.length ? ' hot' : '') + '"><div class="small muted">Interviews booked</div><div class="n">' + upcoming.length + '</div></div>' +
+      '<div class="stat"><div class="small muted">Need to book</div><div class="n">' + cnt('Applied') + '</div></div>' +
+      '<div class="stat"><div class="small muted">Doing next steps</div><div class="n">' + (cnt('Next steps') + cnt('Waiting on checks')) + '</div></div>' +
+      '<div class="stat"><div class="small muted">Approved Neighbors</div><div class="n">' + cnt('Approved') + '</div></div></div>' + (flash || '');
+    h += '<div class="bar"><select id="nf" aria-label="Show"><option value="open"' + (nStatus === 'open' ? ' selected' : '') + '>Everyone in progress</option><option value="all"' + (nStatus === 'all' ? ' selected' : '') + '>Everyone</option>' +
+      Object.keys(STAGE).map(function (s) { return '<option value="' + s + '"' + (nStatus === s ? ' selected' : '') + '>' + STAGE[s][0] + '</option>'; }).join('') + '</select><span class="spacer"></span><button class="btn btn-ghost btn-small" id="rf">Refresh</button></div>';
+    h += list.length ? '<div class="tablewrap"><table><thead><tr><th>Applied</th><th>Who</th><th>Where</th><th>Where they are</th><th>Steps</th><th>Notes</th></tr></thead><tbody>' + list.map(function (n) {
+      var stg = STAGE[n.status] || [n.status, ''], name = (n.preferred || n.legal_first) + ' ' + n.legal_last;
+      var iv = n.status === 'Interview booked' ? '<div style="margin-top:6px"><strong>' + e(whenLong(n.interview_at)) + '</strong></div>' : '';
+      var acts = (n.status === 'Interview booked' || n.status === 'Applied') ? '<div class="acts"><button class="go" data-res="Passed" data-id="' + n.id + '">Passed</button><button class="no" data-res="Not a fit" data-id="' + n.id + '">Not a fit</button>' + (n.status === 'Interview booked' ? '<button data-res="No-show" data-id="' + n.id + '">No-show</button>' : '') + '</div>' : '';
+      var steps = [['Interview', n.interview_result ? n.interview_result : '-'], ['Course', n.course_passed_at ? n.course_score + ' of 5' : '-'], ['Agreement', n.agreement_signed_at ? 'Signed' : '-'], ['Checks', n.checks_status], ['Bank', n.bank_status]];
+      return '<tr><td>' + when(n.created_at) + '</td><td><strong>' + e(name) + '</strong>' + (n.preferred ? '<div class="small muted">Legal: ' + e(n.legal_first + ' ' + n.legal_last) + '</div>' : '<br>') + e(n.email) + '<br>' + e(n.phone || '') +
+        (n.email_note ? '<div class="msg err" style="margin-top:6px;padding:6px 8px;font-size:.8rem">' + e(n.email_note) + '</div>' : '') +
+        '<details class="ans"><summary>Answers</summary><div class="det">' + [['Gender', n.gender], ['Hours', n.hours], ['Now doing', n.work], ['Free', (n.times || []).join(', ')], ['Carry groceries', n.carry ? 'Yes' : 'No'], ['Heard about us', n.heard], ['Why', n.why]].map(function (x) { return '<b>' + x[0] + ':</b> ' + e(x[1] || ''); }).join('<br>') + '</div></details></td>' +
+        '<td>' + e(n.zip) + '<br><span class="' + (n.area === 'Not yet served' ? 'area-out' : 'muted') + '">' + e(n.area || '') + '</span></td>' +
+        '<td><span class="st ' + stg[1] + '">' + e(stg[0]) + '</span>' + iv + acts + '</td>' +
+        '<td class="det">' + steps.map(function (x) { return '<b>' + x[0] + ':</b> ' + e(x[1]); }).join('<br>') + (n.status !== 'Waitlist' && n.status !== 'Not a fit' ? '<div class="acts"><button data-resend="' + n.id + '">Email them a fresh link</button></div>' : '') + '</td>' +
+        '<td><textarea data-nn="' + n.id + '" placeholder="Interview notes...">' + e(n.notes || '') + '</textarea><div class="saved" id="sv-' + n.id + '"></div></td></tr>';
+    }).join('') + '</tbody></table></div>' : '<div class="card">No applicants here yet.</div>';
+    app.innerHTML = h;
+  }
+
+  // ---------- emails ----------
+  function renderEmails() {
+    var h = nav() + '<h1 style="font-size:1.9rem;margin-bottom:0">Emails</h1><p class="muted" style="margin:4px 0 16px">Every automatic email Show-Me Neighbors sends. A failed one shows in red here and on the person.</p>';
+    h += msgs.length ? '<div class="tablewrap"><table><thead><tr><th>When</th><th>To</th><th>Subject</th><th>Result</th></tr></thead><tbody>' + msgs.map(function (m) {
+      return '<tr><td>' + when(m.at) + '</td><td>' + e(m.to_email) + '</td><td>' + e(m.subject) + '</td><td>' + (m.status === 'Sent' ? '<span class="ok-line">Sent</span>' : '<span class="area-out">Failed: ' + e(m.error || '') + '</span>') + '</td></tr>';
+    }).join('') + '</tbody></table></div>' : '<div class="card">No emails sent yet.</div>';
+    app.innerHTML = h;
+  }
+
+  // ---------- settings ----------
+  var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  async function loadSettings() {
+    var r = await sb.from('settings').select('*').order('sort');
+    if (r.error) { app.innerHTML = nav() + '<div class="msg err">Could not load settings: ' + e(r.error.message) + '</div>'; return; }
+    sets = r.data; renderSettings();
+  }
+  function input(x) {
+    var v = x.value;
+    if (typeof v === 'boolean') return '<label class="row" style="display:flex;gap:8px;cursor:pointer"><input type="checkbox" data-set="' + x.key + '"' + (v ? ' checked' : '') + ' style="width:auto"> <span>' + (v ? 'On' : 'Off') + '</span></label>';
+    if (x.key === 'interview_week') return DAYS.map(function (d) { return '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span style="width:38px;font-weight:800">' + d + '</span><input data-week="' + d + '" value="' + e((v[d] || []).join(', ')) + '" placeholder="Not interviewing"></div>'; }).join('') + '<button class="btn btn-ghost btn-small" data-saveweek="1">Save interview hours</button>';
+    if (typeof v === 'number') return '<input type="number" data-set="' + x.key + '" value="' + e(v) + '">';
+    return '<input data-set="' + x.key + '" value="' + e(v) + '" placeholder="' + (x.key === 'interview_link' ? 'https://meet.google.com/...' : '') + '">';
+  }
+  function renderSettings() {
+    var h = nav() + '<h1 style="font-size:1.9rem;margin-bottom:0">Settings</h1><p class="muted" style="margin:4px 0 16px">Change how Show-Me Neighbors runs. Changes save as soon as you leave a box and take effect right away.</p><div class="card">' +
+      sets.map(function (x) { return '<div class="set"><div><strong>' + e(x.label || x.key) + '</strong>' + (x.help ? '<div class="small muted">' + e(x.help) + '</div>' : '') + (x.key === 'interview_week' ? '<div class="small muted">Write times like 10:00-12:00, 18:00-19:30 (24-hour clock). Leave a day empty for no interviews.</div>' : '') + '</div><div>' + input(x) + '<div class="saved" id="ss-' + x.key + '"></div></div></div>'; }).join('') + '</div>';
+    app.innerHTML = h;
+  }
+  async function saveSetting(key, value) {
+    var el = document.getElementById('ss-' + key);
+    var r = await sb.from('settings').update({ value: value, updated_at: new Date().toISOString(), updated_by: me }).eq('key', key).select('key');
+    if (r.error || !r.data || !r.data.length) { if (el) { el.style.color = '#7a2a17'; el.textContent = 'Not saved: ' + ((r.error && r.error.message) || 'try again'); } return; }
+    sets.forEach(function (x) { if (x.key === key) x.value = value; });
+    if (el) { el.style.color = ''; el.textContent = 'Saved'; setTimeout(function () { el.textContent = ''; }, 2000); }
+  }
+
+  async function loadSignups() {
     var r = await sb.from('signups').select('*').order('created_at', { ascending: false }).limit(1000);
     if (r.error) { app.innerHTML = '<div class="msg err">Could not load sign-ups: ' + e(r.error.message) + '</div>'; return; }
     rows = r.data; render();
@@ -119,7 +230,7 @@
     var list = rows.filter(function (x) { return (tab === 'all' || x.kind === tab) && (!areaF || x.area === areaF) && (!statusF || x.status === statusF); });
     var count = function (k) { return rows.filter(function (x) { return x.kind === k; }).length; };
     var nNew = rows.filter(function (x) { return x.status === 'New'; }).length;
-    var h = '<h1 style="font-size:1.9rem;margin-bottom:0">Sign-ups</h1><p class="muted" style="margin:4px 0 0">Everyone who joined the list, applied to be a Neighbor or took the quiz on the website.</p>' +
+    var h = nav() + '<h1 style="font-size:1.9rem;margin-bottom:0">Sign-ups</h1><p class="muted" style="margin:4px 0 0">Everyone who joined the list, applied to be a Neighbor or took the quiz on the website.</p>' +
       '<div class="stats"><div class="stat' + (nNew ? ' hot' : '') + '"><div class="small muted">New, not contacted yet</div><div class="n">' + nNew + '</div></div>' +
       '<div class="stat"><div class="small muted">Families</div><div class="n">' + count('family') + '</div></div>' +
       '<div class="stat"><div class="small muted">Neighbor applicants</div><div class="n">' + count('neighbor') + '</div></div>' +
@@ -163,16 +274,49 @@
     if (t.dataset.tab) { tab = t.dataset.tab; return render(); }
     if (t.id === 'rf') return load();
     if (t.id === 'csv') return csv();
+    if (t.dataset.res) return interviewResult(t);
+    if (t.dataset.resend) return resend(t);
+    if (t.dataset.saveweek) {
+      var wk = {}, bad = '';
+      app.querySelectorAll('[data-week]').forEach(function (i) { var parts = i.value.split(',').map(function (x) { return x.replace(/\s/g, ''); }).filter(Boolean); parts.forEach(function (x) { if (!/^\d{1,2}:\d{2}-\d{1,2}:\d{2}$/.test(x)) bad = i.dataset.week + ': ' + x; }); if (parts.length) wk[i.dataset.week] = parts; });
+      var el = document.getElementById('ss-interview_week');
+      if (bad) { el.style.color = '#7a2a17'; el.textContent = 'Please write times like 10:00-12:00 (' + bad + ')'; return; }
+      return saveSetting('interview_week', wk);
+    }
   });
+  async function interviewResult(t) {
+    var n = nbrs.filter(function (x) { return x.id === t.dataset.id; })[0], res = t.dataset.res, name = (n.preferred || n.legal_first) + ' ' + n.legal_last;
+    var what = { 'Passed': 'Mark ' + name + ' as Passed? They will get an email with their next steps.', 'Not a fit': 'Mark ' + name + ' as Not a fit? They will get a kind email saying we are not moving forward.', 'No-show': 'Mark ' + name + ' as a No-show? They will get an email to pick a new time' + ((n.no_shows || 0) >= 1 ? '. This is their second no-show, so their application will close.' : '.') }[res];
+    if (t.dataset.sure !== '1') { app.querySelectorAll('[data-sure="1"]').forEach(function (b) { b.dataset.sure = ''; b.textContent = b.dataset.res; }); t.dataset.sure = '1'; t.textContent = 'Click again to confirm'; t.title = what; var tip = document.createElement('div'); tip.className = 'small muted'; tip.style.marginTop = '6px'; tip.textContent = what; t.parentNode.appendChild(tip); return; }
+    t.disabled = true; t.textContent = 'Saving...';
+    var notes = (document.querySelector('[data-nn="' + n.id + '"]') || {}).value || '';
+    var r = await fn('result', { id: n.id, result: res, notes: notes });
+    await loadApplicants();
+    if (!r || !r.ok) return renderApplicants('<div class="msg err">' + e((r && r.error) || 'That did not save. Please try again.') + '</div>');
+    renderApplicants('<div class="msg ' + (r.emailed ? 'ok' : 'err') + '">' + e(name) + ': ' + e(res) + '. ' + (r.emailed ? 'Their email was sent.' : 'The email did NOT send. See Emails.') + '</div>');
+  }
+  async function resend(t) {
+    t.disabled = true; t.textContent = 'Sending...';
+    var r = await fn('resend', { id: t.dataset.resend });
+    t.textContent = r && r.ok ? 'Sent' : 'Not sent. See Emails.';
+  }
   app.addEventListener('change', async function (ev) {
     var t = ev.target;
+    if (t.id === 'nf') { nStatus = t.value; return renderApplicants(); }
+    if (t.dataset.set) { var x = sets.filter(function (y) { return y.key === t.dataset.set; })[0]; var v = t.type === 'checkbox' ? t.checked : (typeof x.value === 'number' ? +t.value : t.value.trim()); if (typeof v === 'number' && isNaN(v)) return; await saveSetting(t.dataset.set, v); if (t.type === 'checkbox') renderSettings(); return; }
+    if (t.dataset.nn) {
+      var r = await sb.from('neighbors').update({ notes: t.value.trim(), updated_at: new Date().toISOString(), updated_by: me }).eq('id', t.dataset.nn).select('id');
+      var el = document.getElementById('sv-' + t.dataset.nn); if (el) { el.style.color = r.error || !r.data.length ? '#7a2a17' : ''; el.textContent = r.error || !r.data.length ? 'Not saved. Refresh and try again.' : 'Saved'; }
+      nbrs.forEach(function (n) { if (n.id === t.dataset.nn) n.notes = t.value.trim(); });
+      return;
+    }
     if (t.id === 'af') { areaF = t.value; return render(); }
     if (t.id === 'sf') { statusF = t.value; return render(); }
     if (t.dataset.st) { if (await save(t.dataset.st, { status: t.value })) render(); return; }
     if (t.dataset.nt) save(t.dataset.nt, { notes: t.value.trim() });
   });
   sb.auth.onAuthStateChange(function (evt) { if (evt === 'SIGNED_IN' && !me) start(); });
-  setInterval(function () { if (me && document.visibilityState === 'visible' && !document.activeElement.matches('textarea')) load(); }, 60000);
+  setInterval(function () { if (me && page !== 'settings' && document.visibilityState === 'visible' && !document.activeElement.matches('textarea, input, select')) load(); }, 60000);
   start();
 })();
 </script>

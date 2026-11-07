@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apply to be a Neighbor | Show-Me Neighbors</title>
+<meta name="description" content="Apply to be a Show-Me Neighbor: flexible, part-time work helping older adults in Missouri with company, rides and errands.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css?v=1107q">
+<link rel="icon" href="../assets/favicon.png" type="image/png"><link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<style>
+  body { background: #f5f8fc; }
+  main { padding-block: 28px 70px; }
+  .box { max-width: 680px; margin: 0 auto; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 16px; }
+  .card h2 { margin-top: 0; }
+  .muted { color: var(--ink-soft); }
+  .msg { padding: 12px 14px; border-radius: 12px; margin-top: 12px; font-weight: 700; }
+  .msg.ok { background: #e3f1e6; } .msg.err { background: #fbe4dd; color: #7a2a17; } .msg.info { background: #e3edf6; }
+  .steps-list { list-style: none; padding: 0; margin: 0; }
+  .steps-list li { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .steps-list li:last-child { border-bottom: 0; }
+  .dot { flex: 0 0 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; background: #e9eff6; color: var(--ink-soft); }
+  .dot.done { background: #2e7d4f; color: #fff; } .dot.now { background: var(--sun); color: var(--ink); }
+  .slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin: 8px 0 18px; }
+  .slots button { font: inherit; font-weight: 800; padding: 10px 8px; border-radius: 12px; border: 2px solid var(--line); background: #fff; cursor: pointer; }
+  .slots button:hover, .slots button:focus-visible { border-color: var(--brick); background: #e3edf6; }
+  .day { font-weight: 900; margin-top: 10px; }
+  .lesson { border-left: 4px solid var(--sun); padding-left: 14px; margin: 16px 0; }
+  .q { margin: 18px 0; } .q label { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; cursor: pointer; font-weight: 600; }
+  .q input, .row input[type=checkbox] { width: auto; margin-top: 4px; }
+  .rule { padding: 10px 0; border-bottom: 1px solid var(--line); } .rule:last-child { border-bottom: 0; }
+  .row { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; margin: 10px 0; }
+  .back { background: none; border: 0; font: inherit; font-weight: 800; color: var(--brick); cursor: pointer; padding: 0; margin-bottom: 10px; }
+  .count { text-align: right; font-size: .85rem; }
+  .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .toplinks { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: .95rem; }
+  .toplinks a { color: var(--ink); text-decoration: none; }
+  @media (max-width: 520px) { .toplinks > a { display: none; } }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="../index.html" aria-label="Show-Me Neighbors home">
+      <span class="brand-name" role="img" aria-label="Show-Me Neighbors"><span class="w1">Sh<svg class="hdot" viewBox="0 0 60.2 54" aria-hidden="true"><circle cx="30.1" cy="27" r="27" fill="#eb9d1c"/><path transform="translate(3.1 0) scale(.54)" d="M50 78 C30 64 20 54 20 41 C20 31 28 24 37 24 C43 24 47.5 27 50 31.5 C52.5 27 57 24 63 24 C72 24 80 31 80 41 C80 54 70 64 50 78 Z" fill="#fff"/></svg>w-Me</span> <span class="w2">Neighbors</span></span>
+    </a>
+    <div class="toplinks"><a href="../neighbors.html">About being a Neighbor</a><span id="who"></span></div>
+  </div>
+</header>
+<main class="wrap"><div class="box" id="app"><p class="muted">Loading...</p></div></main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function () {
+  var SB_URL = 'https://ubsupoboukcpbklvdkkq.supabase.co';
+  var SB_KEY = 'sb_publishable_02PKeFgkiaetde-La-uBKA_M9hhAHvG'; // public browser key; the server checks every step
+  var sb = supabase.createClient(SB_URL, SB_KEY);
+  var app = document.getElementById('app'), whoEl = document.getElementById('who');
+  var cfg = {}, me = null, times = [], view = 'steps';
+
+  var LESSONS = [
+    ['Being a good visitor', 'Arrive on time, introduce yourself with your first name, and ask how they like things done. Listen more than you talk. Leave things the way you found them, or a little better.'],
+    ['What Neighbors never do', 'No bathing, dressing, grooming, help in the bathroom, feeding, wound care or medication. Never lift or carry anyone, and never help someone move from a bed or chair. No ladders, power tools or yard work.'],
+    ['If someone falls or seems unwell', 'Never try to lift them. If they are hurt or cannot get up, call 911 first. Stay with them, then call the Show-Me Neighbors on-call line. Note what happened in the app.'],
+    ['Privacy and trust', 'What you see and hear in someone\'s home stays private. Never take money, gifts worth more than a cookie, or anyone\'s card or passwords. If something seems wrong, tell us right away.']
+  ];
+  var QUIZ = [
+    ['Mrs. Smith asks you to help her into the bathtub. What do you do?', ['Help her carefully', 'Kindly explain Neighbors cannot help with bathing, and let us know', 'Leave right away']],
+    ['You arrive and no one answers the door. What do you do?', ['Let yourself in if it is unlocked', 'Wait 2 minutes, then leave', 'Stay outside and call the on-call line right away']],
+    ['Can you sort or give someone their pills?', ['Yes, if they ask', 'No. You can pick up prescriptions, but never give or sort medicine', 'Only on weekends']],
+    ['A family asks you to climb a ladder to change a light bulb. What do you say?', ['Sure', 'Kindly say no, Neighbors do not use ladders', 'Only if they hold the ladder']],
+    ['Someone you are visiting has fallen and cannot get up. What do you do?', ['Lift them back into their chair', 'Call 911 if they are hurt, stay with them, then call the on-call line', 'Leave a note for the family']]
+  ];
+  function money(n) { return '$' + (+n).toFixed(0); }
+  function checkPlan() {
+    if (!(cfg.check_cost > 0)) return 'Show-Me Neighbors pays for your checks.';
+    return 'Free to apply. We pay for your checks up front. Then ' + money(cfg.check_per_visit) + ' comes out of each of your first visits until ' + money(cfg.check_cost) + ' is covered, and we pay it all back after your ' + cfg.check_refund_after + 'th visit.';
+  }
+  function rules() {
+    return [
+      ['You are your own boss', 'Neighbors are independent contractors, not employees. You get a 1099 each year and pay your own taxes. You may also do other work.'],
+      ['You pick your hours and visits', 'Turn your hours on or off any time and accept only the visits you want. Once you accept a visit, show up, or tell us in the app as soon as you know you cannot. Cancelling a lot can end your time as a Neighbor.'],
+      ['Everyday help only', 'Company, rides, errands and light help around the house. Never bathing, dressing, the bathroom, medicine, lifting someone or ladders.'],
+      ['Safe driving', 'Keep a valid license and an insured car that meets Missouri minimums, and send proof when we ask. Hands-free phone only. No friends, family or pets in the car when you drive a client.'],
+      ['Checks every year', 'Your background check and driving record are checked again every year.'],
+      ['Tell us right away', 'If you have a car accident, your license changes, you are charged with a crime, or anything goes wrong on a visit, call the on-call line right away.'],
+      ['Privacy and trust', 'What you see and hear in someone\'s home stays private. Never take money, cards, passwords or gifts beyond a small thank-you treat.'],
+      ['Families book through us', 'Families you meet through Show-Me Neighbors keep booking through the app. Please do not offer them visits on your own.'],
+      ['Your background check', checkPlan() + ' If you stop before then, what was taken out is not paid back.']
+    ];
+  }
+
+  function e(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmtWhen(iso) { return new Date(iso).toLocaleString('en-US', { timeZone: 'America/Chicago', weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+  function fmtDay(iso) { return new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Chicago', weekday: 'long', month: 'long', day: 'numeric' }); }
+  function fmtTime(iso) { return new Date(iso).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' }); }
+
+  async function call(action, body) {
+    try {
+      var r = await sb.functions.invoke('neighbors', { body: Object.assign({ action: action }, body || {}) });
+      if (r.error) { var j = null; try { j = await r.error.context.json(); } catch (x) {} return j || { ok: false, error: 'We could not reach Show-Me Neighbors. Please check your connection and try again.' }; }
+      return r.data;
+    } catch (x) { return { ok: false, error: 'We could not reach Show-Me Neighbors. Please check your connection and try again.' }; }
+  }
+  function busy(btn, text) { if (btn) { btn.disabled = true; btn.dataset.was = btn.textContent; btn.textContent = text || 'One moment...'; } }
+  function unbusy(btn) { if (btn) { btn.disabled = false; btn.textContent = btn.dataset.was || btn.textContent; } }
+  function say(id, text, kind) { var el = document.getElementById(id); if (el) el.innerHTML = text ? '<div class="msg ' + (kind || 'err') + '">' + e(text) + '</div>' : ''; }
+
+  // ---------- not signed in ----------
+  function signInBox(note) {
+    return '<div class="card"><h2>Already applied?</h2><p class="muted">Enter your email and we will send you a link to see your application and your next step. No password needed.</p>' +
+      '<form id="lf"><div class="field"><label for="lf-em">Email</label><input id="lf-em" type="email" autocomplete="email" required></div><button class="btn btn-ghost">Email me a link</button></form><div id="lf-msg">' + (note || '') + '</div></div>';
+  }
+  function closedScreen(note) {
+    app.innerHTML = '<div class="card"><h1 style="font-size:2rem;margin-top:0">Applications open soon</h1><p>We are getting ready to welcome our first Neighbors in the Springfield, Branson / Table Rock Lake and St. Charles County areas.</p><p>Join our list and we will email you the moment applications open.</p><a class="btn btn-primary" href="../neighbors.html#apply">Get on the list</a></div>' + signInBox(note);
+  }
+  function radios(name, opts) { return '<div>' + opts.map(function (o) { return '<label class="tick"><input type="radio" name="' + name + '" value="' + e(o) + '"><span>' + e(o) + '</span></label>'; }).join('') + '</div>'; }
+  function formScreen(note) {
+    var min = cfg.why_min_chars || 150;
+    app.innerHTML = '<div class="card"><h1 style="font-size:2rem;margin-top:0">Apply to be a Neighbor</h1><p>Flexible, part-time work helping older adults with company, rides and errands. No healthcare experience needed. It takes about 5 minutes.</p>' +
+      (cfg.applications_open ? '' : '<div class="msg info">Applications are not open to the public yet. Only office team emails can apply, for testing.</div>') + '</div>' +
+      '<form id="af" class="card" novalidate><div style="position:absolute;left:-9999px" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div>' +
+      '<div class="grid-2"><div class="field"><label for="a-first">Legal first name</label><input id="a-first" autocomplete="given-name" required></div><div class="field"><label for="a-last">Legal last name</label><input id="a-last" autocomplete="family-name" required></div></div>' +
+      '<div class="field"><label for="a-pref">Name you go by (optional)</label><input id="a-pref" placeholder="Like Bev for Beverly"></div>' +
+      '<fieldset class="field ticks"><legend>Are you a man or a woman? <span class="muted" style="font-weight:600">Some families ask for one or the other.</span></legend>' + radios('gender', ['Woman', 'Man']) + '</fieldset>' +
+      '<div class="grid-2"><div class="field"><label for="a-zip">ZIP code</label><input id="a-zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required></div><div class="field"><label for="a-phone">Mobile phone</label><input id="a-phone" type="tel" autocomplete="tel" required></div></div>' +
+      '<div class="field"><label for="a-email">Email</label><input id="a-email" type="email" autocomplete="email" required></div>' +
+      '<div class="grid-2"><div class="field"><label for="a-hours">Hours a week you would like</label><select id="a-hours"><option>2 to 4 hours</option><option>4 to 8 hours</option><option>8 to 12 hours</option><option>12 to 15 hours</option><option>As many as I can get</option></select></div>' +
+      '<div class="field"><label for="a-work">What are you doing now?</label><select id="a-work"><option>Working full time</option><option>Working part time</option><option>Retired</option><option>Not working right now</option><option>Stay-at-home parent</option><option>Student</option></select></div></div>' +
+      '<fieldset class="field ticks"><legend>When are you usually free? Pick any.</legend><div>' + ['Mornings', 'Afternoons', 'Evenings', 'Weekends'].map(function (t) { return '<label class="tick"><input type="checkbox" name="times" value="' + t + '"><span>' + t + '</span></label>'; }).join('') + '</div></fieldset>' +
+      '<fieldset class="field ticks"><legend>Do you have a driver\'s license and an insured car?</legend>' + radios('car', ['Yes', 'No']) + '</fieldset>' +
+      '<fieldset class="field ticks"><legend>Can you carry a bag of groceries up a few steps?</legend>' + radios('carry', ['Yes', 'No']) + '</fieldset>' +
+      '<div class="field"><label for="a-why">Why would you like to be a Neighbor?</label><p class="muted" style="margin:0 0 6px;font-size:.92rem">A few sentences, at least ' + min + ' letters. Tell us about you and the older adults in your life.</p><textarea id="a-why" rows="5"></textarea><div class="count muted" id="why-count">0 of ' + min + '</div></div>' +
+      '<div class="field"><label for="a-heard">How did you hear about us?</label><select id="a-heard"><option>Friend or family</option><option>Facebook or social media</option><option>Online search</option><option>Church or community group</option><option>Flyer or newspaper</option><option>Other</option></select></div>' +
+      '<label class="row"><input type="checkbox" id="a-age"> <span>I am at least ' + (cfg.min_age || 21) + ' years old</span></label>' +
+      '<div class="msg info" style="font-weight:600"><strong>What happens next:</strong> you pick a time for a 20-minute live video interview. Then a short online course, the Neighbor agreement, and a background check and driving record check. ' + e(checkPlan()) + '</div>' +
+      '<p class="form-consent">By applying you agree that Show-Me Neighbors may email and text you about your application. See our <a href="../privacy.html">privacy policy</a>.</p>' +
+      '<button class="btn btn-primary" style="width:100%">Send my application</button><div id="af-msg"></div></form>' + signInBox(note);
+  }
+
+  // ---------- signed in ----------
+  function stepsScreen(note) {
+    var m = me, st = m.status, past = ['Next steps', 'Waiting on checks', 'Ready for approval', 'Approved'].indexOf(st) >= 0;
+    var h = '<h1 style="font-size:2rem;margin-top:0">Hi, ' + e(m.first) + '</h1>';
+    if (st === 'Waitlist') return h + '<div class="card"><p>Thank you for applying! We are not taking Neighbors near ' + e(m.zip) + ' yet. Your application is saved, and we will email you as soon as we open in your area.</p></div>';
+    if (st === 'Not a fit' || st === 'Withdrew') return h + '<div class="card"><p>Your application is closed. Thank you for your interest in helping older adults in your community.</p></div>';
+    if (st === 'Approved') return h + '<div class="card"><p><strong>You are approved!</strong> Welcome to Show-Me Neighbors. We will email you when the Neighbor app is ready for you to set your hours and take visits.</p></div>';
+    var items = [
+      ['Application', 'Sent', true, ''],
+      ['Video interview', st === 'Interview booked' ? fmtWhen(m.interview_at) + ' Central time' : (past ? 'Done' : 'Pick a time to meet us'), past, past ? '' : (st === 'Interview booked' ? 'interview-info' : 'interview')],
+      ['Onboarding course and quiz', m.course_passed ? 'Passed (' + m.course_score + ' of 5)' : (past ? 'About 15 minutes' : 'Opens after your interview'), m.course_passed, past && !m.course_passed ? 'course' : ''],
+      ['Neighbor agreement', m.agreement_signed ? 'Signed' : (past ? 'Read and sign' : 'Opens after your interview'), m.agreement_signed, past && !m.agreement_signed ? 'agreement' : ''],
+      ['Background and driving record checks', m.checks_status === 'Clear' ? 'All clear' : (past ? 'Opening soon. We will email you when this step is ready.' : 'Opens after your interview'), m.checks_status === 'Clear', ''],
+      ['Bank account for weekly pay', m.bank_status === 'Added' ? 'Added' : (past ? 'Opening soon. We will email you when this step is ready.' : 'Opens after your interview'), m.bank_status === 'Added', '']
+    ];
+    var first = -1; items.forEach(function (it, i) { if (!it[2] && first < 0) first = i; });
+    var label = { interview: 'Pick a time', 'interview-info': 'See details or change', course: 'Start the course', agreement: 'Read and sign' };
+    h += '<p class="muted">Here is where your application stands.</p>' + (note || '');
+    if (st === 'Interview booked') {
+      h += '<div class="card"><h2>Your video interview</h2><p style="font-size:1.2rem"><strong>' + e(fmtWhen(m.interview_at)) + '</strong> Central time</p>' +
+        (m.interview_link ? '<a class="btn btn-primary" href="' + e(m.interview_link) + '" target="_blank" rel="noopener">Join the video call</a><p class="muted" style="margin-top:10px">Join from your phone or computer a minute or two early.</p>' : '<p>We will email you the video call link before your interview.</p>') +
+        '<p class="muted">About ' + m.interview_minutes + ' minutes. Find a quiet spot with good light. Come as you are!</p></div>';
+    }
+    h += '<div class="card"><ul class="steps-list">' + items.map(function (it, i) {
+      return '<li><div class="dot ' + (it[2] ? 'done' : (i === first ? 'now' : '')) + '">' + (it[2] ? '&#10003;' : i + 1) + '</div><div style="flex:1"><strong>' + it[0] + '</strong><div class="muted">' + e(it[1]) + '</div>' +
+        (it[3] ? '<button class="btn btn-primary btn-small" style="margin-top:8px" data-go="' + it[3] + '">' + label[it[3]] + '</button>' : '') + '</div></li>';
+    }).join('') + '</ul></div>';
+    if (st === 'Waiting on checks') h += '<div class="msg ok">Thank you! You have done everything you can for now. We will email you when the checks and bank steps open.</div>';
+    return h;
+  }
+  function timesScreen(note) {
+    var m = me, h = '<button class="back" data-go="steps">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">' + (m.status === 'Interview booked' ? 'Change your interview time' : 'Pick a video interview time') + '</h1>' +
+      '<p>A friendly ' + m.interview_minutes + '-minute live video call so we can get to know you. Join from your phone or computer. All times are Central time.</p>' + (note || '');
+    if (m.status === 'Interview booked') h += '<div class="card"><p>You are booked for <strong>' + e(fmtWhen(m.interview_at)) + '</strong>. Pick a new time below, or <button class="back" style="margin:0" data-cancel="1">cancel this interview</button>.</p></div>';
+    if (!times.length) return h + '<div class="card"><p>There are no open times right now. New times open every week, so please check back in a day or two.</p></div>';
+    var days = {}; times.forEach(function (t) { var d = fmtDay(t); (days[d] = days[d] || []).push(t); });
+    h += '<div class="card">' + Object.keys(days).map(function (d) { return '<div class="day">' + d + '</div><div class="slots">' + days[d].map(function (t) { return '<button data-slot="' + t + '">' + fmtTime(t) + '</button>'; }).join('') + '</div>'; }).join('') + '</div><div id="tm-msg"></div>';
+    return h;
+  }
+  function courseScreen(note) {
+    var h = '<button class="back" data-go="steps">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">Onboarding course</h1><p>Read these four short lessons, then answer five questions. You need ' + me.quiz_pass + ' of 5 to pass, and you can try again.</p><div class="card">';
+    LESSONS.forEach(function (l, i) { h += '<div class="lesson"><div class="eyebrow">Lesson ' + (i + 1) + '</div><h3 style="margin:4px 0">' + l[0] + '</h3><p style="margin:0">' + e(l[1]) + '</p></div>'; });
+    h += '</div><form id="qf" class="card"><h2>Quiz</h2>' + QUIZ.map(function (q, i) { return '<div class="q"><strong>' + (i + 1) + '. ' + e(q[0]) + '</strong>' + q[1].map(function (o, j) { return '<label><input type="radio" name="q' + i + '" value="' + j + '"> <span>' + e(o) + '</span></label>'; }).join('') + '</div>'; }).join('') +
+      '<button class="btn btn-primary" style="width:100%">Check my answers</button><div id="qf-msg">' + (note || '') + '</div></form>';
+    return h;
+  }
+  function agreementScreen() {
+    return '<button class="back" data-go="steps">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">Neighbor agreement</h1><div class="msg info" style="font-weight:600"><strong>Draft.</strong> This is the summary Neighbors see. The full agreement is being finished by our attorney under Missouri law.</div>' +
+      '<div class="card">' + rules().map(function (r, i) { return '<div class="rule"><strong>' + (i + 1) + '. ' + r[0] + '</strong><p style="margin:4px 0 0">' + e(r[1]) + '</p></div>'; }).join('') + '</div>' +
+      '<form id="sf" class="card"><h2>Photos and stories (your choice)</h2><p>Can we share your photo or a quote from you in our marketing? You can change your mind any time.</p><label class="row"><input type="checkbox" id="s-media"> <span>Yes, you may use my photo and story</span></label>' +
+      '<hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><label class="row"><input type="checkbox" id="s-ok"> <span>I have read and agree to the Neighbor agreement</span></label>' +
+      '<div class="field"><label for="s-name">Type your full legal name to sign</label><input id="s-name" autocomplete="name"></div><button class="btn btn-primary" style="width:100%">Sign</button><div id="sf-msg"></div></form>';
+  }
+
+  function render(note) {
+    if (!me) return cfg.applications_open || /[?&]preview=1/.test(location.search) ? formScreen(note) : closedScreen(note);
+    var v = { steps: stepsScreen, interview: timesScreen, 'interview-info': timesScreen, course: courseScreen, agreement: agreementScreen }[view] || stepsScreen;
+    app.innerHTML = v(note);
+    window.scrollTo(0, 0);
+  }
+  function header() {
+    whoEl.innerHTML = me ? '<button class="btn btn-ghost btn-small" id="out" style="margin-left:10px">Sign out</button>' : '';
+    var o = document.getElementById('out'); if (o) o.onclick = async function () { await sb.auth.signOut(); me = null; view = 'steps'; header(); render(); };
+  }
+
+  async function loadMe(note) {
+    var r = await call('me');
+    if (r && r.ok) { me = r.me; times = r.times || []; header(); return render(note); }
+    if (r && r.none) { await sb.auth.signOut(); me = null; header(); return render('<div class="msg err">' + e(r.error) + '. If you have not applied yet, please fill out the application.</div>'); }
+    me = null; header(); render(r && r.signin ? '' : '<div class="msg err">' + e((r && r.error) || 'Something went wrong') + '</div>');
+  }
+
+  async function start() {
+    var c = await call('config'); cfg = (c && c.settings) || {};
+    var t = new URLSearchParams(location.search).get('t');
+    if (t) {
+      history.replaceState(null, '', location.pathname);
+      var v = await sb.auth.verifyOtp({ token_hash: t, type: 'email' });
+      if (v.error) v = await sb.auth.verifyOtp({ token_hash: t, type: 'magiclink' });
+      if (v.error) { me = null; return render('<div class="msg err">That link has expired or was already used. Enter your email below and we will send a new one.</div>'); }
+    }
+    var s = (await sb.auth.getSession()).data.session;
+    if (!s) return render();
+    loadMe();
+  }
+
+  app.addEventListener('input', function (ev) { if (ev.target.id === 'a-why') { var c = document.getElementById('why-count'); if (c) c.textContent = ev.target.value.trim().length + ' of ' + (cfg.why_min_chars || 150); } });
+  app.addEventListener('click', async function (ev) {
+    var t = ev.target.closest('[data-go],[data-slot],[data-cancel]'); if (!t) return;
+    if (t.dataset.go) { view = t.dataset.go; return render(); }
+    if (t.dataset.slot) {
+      app.querySelectorAll('.slots button').forEach(function (b) { b.disabled = true; }); busy(t, 'Booking...');
+      var r = await call('book', { at: t.dataset.slot });
+      if (r && r.ok) { me = r.me; view = 'steps'; return render('<div class="msg ok">You are booked! We emailed you the details and a calendar invite.</div>'); }
+      if (r && r.refresh) { var m = await call('me'); if (m && m.ok) { me = m.me; times = m.times || []; } }
+      return render('<div class="msg err">' + e((r && r.error) || 'That did not work. Please try again.') + '</div>');
+    }
+    if (t.dataset.cancel) {
+      busy(t, 'Cancelling...');
+      var c = await call('cancel');
+      if (c && c.ok) { me = c.me; times = c.times || []; view = 'interview'; return render('<div class="msg ok">Your interview is cancelled. Pick a new time whenever you are ready.</div>'); }
+      return render('<div class="msg err">' + e((c && c.error) || 'That did not work.') + '</div>');
+    }
+  });
+  app.addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var f = ev.target, btn = f.querySelector('button[class*=btn-primary], button.btn');
+    if (f.id === 'lf') {
+      busy(btn, 'Sending...');
+      var r0 = await call('link', { email: document.getElementById('lf-em').value.trim() });
+      unbusy(btn);
+      return say('lf-msg', r0 && r0.ok ? 'If we have an application for that email, a link is on its way. It works once and expires in an hour.' : ((r0 && r0.error) || 'That did not work. Please try again.'), r0 && r0.ok ? 'ok' : 'err');
+    }
+    if (f.id === 'af') {
+      var g = function (id) { return document.getElementById(id).value.trim(); };
+      var pick = function (n) { var x = f.querySelector('[name="' + n + '"]:checked'); return x ? x.value : ''; };
+      var body = { legal_first: g('a-first'), legal_last: g('a-last'), preferred: g('a-pref'), gender: pick('gender'), zip: g('a-zip'), phone: g('a-phone'), email: g('a-email'),
+        hours: g('a-hours'), work: g('a-work'), times: Array.prototype.map.call(f.querySelectorAll('[name=times]:checked'), function (c) { return c.value; }),
+        car: pick('car') === 'Yes', carry: pick('carry') === 'Yes', why: g('a-why'), heard: g('a-heard'), age_ok: document.getElementById('a-age').checked, website: f.website.value };
+      var problem = !body.legal_first || !body.legal_last ? 'Please add your legal first and last name.' : !/^\d{5}$/.test(body.zip) ? 'Please add your 5-digit ZIP code.' : !body.phone ? 'Please add your mobile phone.' : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email) ? 'Please check your email address.' :
+        !body.gender ? 'Please tell us if you are a man or a woman.' : pick('car') !== 'Yes' ? 'Neighbors need a driver\'s license and an insured car for rides and errands.' : body.why.length < (cfg.why_min_chars || 150) ? 'Please tell us a little more about why you would like to be a Neighbor (at least ' + (cfg.why_min_chars || 150) + ' letters).' : !body.age_ok ? 'Neighbors need to be at least ' + (cfg.min_age || 21) + ' years old.' : '';
+      if (problem) return say('af-msg', problem);
+      busy(btn, 'Sending...');
+      var r = await call('apply', body);
+      unbusy(btn);
+      if (!r || !r.ok) return say('af-msg', (r && r.error) || 'That did not work. Please try again.');
+      app.innerHTML = '<div class="card"><h1 style="font-size:2rem;margin-top:0">' + (r.already ? 'You already applied' : 'Thank you for applying!') + '</h1>' +
+        (r.status === 'Waitlist' ? '<p>We are not taking Neighbors near ' + e(body.zip) + ' yet. Your application is saved, and we will email you as soon as we open in your area.</p>'
+          : '<p>Check your email at <strong>' + e(body.email) + '</strong>. We sent you a link to ' + (r.already ? 'see your application' : 'pick a time for your video interview') + '.</p><p class="muted">Do not see it? Check your spam or promotions folder. The email comes from hello@showmeneighbors.com.</p>') + '</div>';
+      return window.scrollTo(0, 0);
+    }
+    if (f.id === 'qf') {
+      var ans = QUIZ.map(function (q, i) { var x = f.querySelector('[name=q' + i + ']:checked'); return x ? +x.value : -1; });
+      if (ans.indexOf(-1) >= 0) return say('qf-msg', 'Please answer every question.');
+      busy(btn, 'Checking...');
+      var q = await call('course', { answers: ans });
+      unbusy(btn);
+      if (!q || !q.ok) return say('qf-msg', (q && q.error) || 'That did not work. Please try again.');
+      if (!q.passed) return say('qf-msg', 'You got ' + q.score + ' of 5. You need ' + q.need + '. Read the lessons again and give it another try.');
+      me = q.me; view = 'steps'; return render('<div class="msg ok">You passed with ' + q.score + ' of 5!</div>');
+    }
+    if (f.id === 'sf') {
+      var name = document.getElementById('s-name').value.trim();
+      if (!document.getElementById('s-ok').checked || name.length < 3) return say('sf-msg', 'Tick the box and type your full legal name to sign.');
+      busy(btn, 'Signing...');
+      var s2 = await call('sign', { agree: true, name: name, media_ok: document.getElementById('s-media').checked });
+      unbusy(btn);
+      if (!s2 || !s2.ok) return say('sf-msg', (s2 && s2.error) || 'That did not work. Please try again.');
+      me = s2.me; view = 'steps'; return render('<div class="msg ok">Signed. Thank you!</div>');
+    }
+  });
+  start();
+})();
+</script>
+</body>
+</html>
