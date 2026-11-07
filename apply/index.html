@@ -34,6 +34,9 @@
   .row { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; margin: 10px 0; }
   .back { background: none; border: 0; font: inherit; font-weight: 800; color: var(--brick); cursor: pointer; padding: 0; margin-bottom: 10px; }
   .count { text-align: right; font-size: .85rem; }
+  .fullagr { max-height: 420px; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; padding: 4px 18px 14px; background: #fbfcfe; font-size: .95rem; }
+  .fullagr h2 { font-size: 1.05rem; margin: 18px 0 6px; }
+  .fullagr ul { padding-left: 1.2em; }
   .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .toplinks { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: .95rem; }
   .toplinks a { color: var(--ink); text-decoration: none; }
@@ -187,18 +190,30 @@
     return h;
   }
   function agreementScreen() {
-    return '<button class="back" data-go="steps">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">Neighbor agreement</h1><div class="msg info" style="font-weight:600"><strong>Draft.</strong> This is the summary Neighbors see. The full agreement is being finished by our attorney under Missouri law.</div>' +
-      '<div class="card">' + rules().map(function (r, i) { return '<div class="rule"><strong>' + (i + 1) + '. ' + r[0] + '</strong><p style="margin:4px 0 0">' + e(r[1]) + '</p></div>'; }).join('') + '</div>' +
+    return '<button class="back" data-go="steps">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">Neighbor agreement</h1><p>First, the most important points in a few words. The full agreement is right below. Please read it before you sign.</p>' +
+      '<div class="card"><h2>The short version</h2>' + rules().map(function (r, i) { return '<div class="rule"><strong>' + (i + 1) + '. ' + r[0] + '</strong><p style="margin:4px 0 0">' + e(r[1]) + '</p></div>'; }).join('') + '</div>' +
+      '<div class="card"><h2>The full agreement</h2><div class="fullagr" id="fullagr">Loading the full agreement...</div><p class="muted" style="margin:10px 0 0;font-size:.92rem">You can also <a href="../neighbor-agreement.html" target="_blank" rel="noopener">open it on its own page</a> to read or print.</p></div>' +
       '<form id="sf" class="card"><h2>Photos and stories (your choice)</h2><p>Can we share your photo or a quote from you in our marketing? You can change your mind any time.</p><label class="row"><input type="checkbox" id="s-media"> <span>Yes, you may use my photo and story</span></label>' +
-      '<hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><label class="row"><input type="checkbox" id="s-ok"> <span>I have read and agree to the Neighbor agreement</span></label>' +
+      '<hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><label class="row"><input type="checkbox" id="s-ok"> <span>I have read and agree to the full Neighbor Agreement (version 2026-11-07)</span></label>' +
       '<div class="field"><label for="s-name">Type your full legal name to sign</label><input id="s-name" autocomplete="name"></div><button class="btn btn-primary" style="width:100%">Sign</button><div id="sf-msg"></div></form>';
   }
 
+  async function loadAgreement() {
+    var box = document.getElementById('fullagr');
+    try {
+      var html = await (await fetch('../neighbor-agreement.html', { cache: 'no-cache' })).text();
+      var art = new DOMParser().parseFromString(html, 'text/html').getElementById('agreement');
+      if (!art) throw new Error('missing');
+      art.querySelectorAll('a[href]').forEach(function (a) { var h = a.getAttribute('href'); if (!/^(https?:|mailto:|#)/.test(h)) a.setAttribute('href', '../' + h); a.target = '_blank'; });
+      if (box) box.innerHTML = art.innerHTML;
+    } catch (x) { if (box) box.innerHTML = 'We could not load it here. Please <a href="../neighbor-agreement.html" target="_blank" rel="noopener">open the full agreement</a> before you sign.'; }
+  }
   function render(note) {
     if (!me) return cfg.applications_open || /[?&]preview=1/.test(location.search) ? formScreen(note) : closedScreen(note);
     var v = { steps: stepsScreen, interview: timesScreen, 'interview-info': timesScreen, course: courseScreen, agreement: agreementScreen }[view] || stepsScreen;
     app.innerHTML = v(note);
     window.scrollTo(0, 0);
+    if (v === agreementScreen) loadAgreement();
   }
   function header() {
     whoEl.innerHTML = me ? '<button class="btn btn-ghost btn-small" id="out" style="margin-left:10px">Sign out</button>' : '';

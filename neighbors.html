@@ -23,8 +23,8 @@
       <a class="nav-link" href="index.html#how">How it works</a>
       <a class="nav-link" href="index.html#help">Services</a>
       <div class="dd"><button class="dd-btn" type="button" aria-expanded="false">For families</button><div class="dd-menu"><a href="index.html#pricing">Pricing</a><a href="index.html#local">Areas we serve</a><a href="index.html#quiz">Is it right for us?</a><a href="index.html#faq">Questions</a></div></div>
-      <div class="dd"><button class="dd-btn" type="button" aria-expanded="false">Become a Neighbor</button><div class="dd-menu"><a href="#why">Why join</a><a href="#work">How the work goes</a><a href="#faq">Neighbor questions</a><a href="#apply">Get on the list</a></div></div>
-      <a class="btn btn-primary btn-small" href="#apply">Apply now</a>
+      <div class="dd"><button class="dd-btn" type="button" aria-expanded="false">Become a Neighbor</button><div class="dd-menu"><a href="#why">Why join</a><a href="#work">How the work goes</a><a href="#faq">Neighbor questions</a><a href="apply/">Apply now</a></div></div>
+      <a class="btn btn-primary btn-small" href="apply/">Apply now</a>
     </nav>
   </div>
 </header>
@@ -38,7 +38,7 @@
       <h1>Spend a few hours <em>making someone's week.</em></h1>
       <p class="lead">Show-Me Neighbors connects kind local people with older adults who would love company, a ride or a hand with errands. You choose your hours and the visits you want, right in the app.</p>
       <div class="btn-row">
-        <a class="btn btn-primary" href="#apply">Get on the Neighbor list</a>
+        <a class="btn btn-primary" href="apply/">Apply to be a Neighbor</a>
         <a class="btn btn-ghost" href="#steps">See how to start</a>
       </div>
       <ul class="hero-points">
@@ -112,7 +112,7 @@
           <li><svg aria-hidden="true"><use href="assets/icons.svg#tick"/></svg>Your visits never involve medication or hands-on care.</li>
           <li><svg aria-hidden="true"><use href="assets/icons.svg#tick"/></svg>No caregiving training or license required. Our onboarding course covers what you need.</li>
         </ul>
-        <a class="btn btn-primary" href="#apply">Get on the Neighbor list</a>
+        <a class="btn btn-primary" href="apply/">Apply to be a Neighbor</a>
       </div>
       <div aria-hidden="true"><svg viewBox="0 0 48 48" style="width:100%;max-width:200px;margin:0 auto"><use href="assets/icons.svg#heart"/></svg></div>
     </div>
@@ -236,7 +236,7 @@
       <details><summary>Do I get paid for driving?</summary><p>Yes. Miles you drive for rides and errands during a visit are paid back to you.</p></details>
       <details><summary>Do I have to use the app?</summary><p>Yes. The app is where you set your hours, see and accept visits, clock in and out, leave visit notes and see your earnings.</p></details>
       <details><summary>Can I help people in my own neighborhood?</summary><p>Yes. You choose how far you are willing to drive, so you might end up visiting folks just down the street.</p></details>
-      <details><summary>How does applying work, and how long does it take?</summary><p>Get on the list below and we will send the application when it opens. Next comes a friendly 20-minute video interview from your phone or computer, then a background check and driving record check, then our short onboarding course with a quick quiz at the end. How fast it goes mostly depends on how quickly your background check comes back.</p></details>
+      <details><summary>How does applying work, and how long does it take?</summary><p>Fill out the short application online. Right after, you pick a time for a friendly 20-minute video interview. Next comes a live video interview from your phone or computer, then a background check and driving record check, then our short onboarding course with a quick quiz at the end. How fast it goes mostly depends on how quickly your background check comes back.</p></details>
       <details><summary>Does it cost anything to apply?</summary><p>No. Applying is free and we pay for your background check up front. A small amount, $7, comes out of each of your first five visits to cover it, and we pay all $35 back after your tenth visit. Stick with us and your check is free.</p></details>
           <details><summary>Where do visits happen?</summary><p>In and around Springfield (including Nixa and Ozark), around Branson and Table Rock Lake, and across St. Charles County to start. We will open more Missouri areas over time.</p></details>
     </div>
@@ -249,64 +249,12 @@
       <div>
         <div class="eyebrow">Be one of our first Neighbors</div>
         <h2>Make a little money making someone's day.</h2>
-        <p class="lead">We are building our first groups of Neighbors in Springfield, Branson / Table Rock Lake and St. Charles now. Leave your details and we will send you the application as soon as it opens.</p>
+        <p class="lead">We are welcoming our first Neighbors in Springfield, Branson / Table Rock Lake and St. Charles County now. The application takes about 5 minutes, and you pick your own video interview time right after.</p>
       </div>
-      <form id="neighbor-form" data-form="neighbor" novalidate>
-        <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div>
-        <div class="row">
-          <div class="field"><label for="n-name">Your name</label><input id="n-name" name="name" autocomplete="name" required></div>
-          <div class="field"><label for="n-zip">Your ZIP code</label><input id="n-zip" name="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required></div>
-        </div>
-        <div class="row">
-          <div class="field"><label for="n-email">Email</label><input id="n-email" name="email" type="email" autocomplete="email" required></div>
-          <div class="field"><label for="n-phone">Phone</label><input id="n-phone" name="phone" type="tel" autocomplete="tel" required></div>
-        </div>
-        <div class="row">
-          <div class="field">
-            <label for="n-hours">Hours a week you would like</label>
-            <select id="n-hours" name="hours">
-              <option>2 to 4 hours</option>
-              <option>4 to 8 hours</option>
-              <option>8 to 12 hours</option>
-              <option>12 to 15 hours</option>
-              <option>As many as I can get</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="n-work">What are you doing now?</label>
-            <select id="n-work" name="work">
-              <option>Working full time</option>
-              <option>Working part time</option>
-              <option>Retired</option>
-              <option>Not working right now</option>
-              <option>Stay-at-home parent</option>
-              <option>Student</option>
-            </select>
-          </div>
-        </div>
-        <fieldset class="field ticks"><legend>When are you usually free? Pick any.</legend><div><label class="tick"><input type="checkbox" name="times" value="Mornings"><span>Mornings</span></label><label class="tick"><input type="checkbox" name="times" value="Afternoons"><span>Afternoons</span></label><label class="tick"><input type="checkbox" name="times" value="Evenings"><span>Evenings</span></label><label class="tick"><input type="checkbox" name="times" value="Weekends"><span>Weekends</span></label></div></fieldset>
-        <fieldset class="field ticks"><legend>Do you have a driver's license and an insured car?</legend><div><label class="tick"><input type="radio" name="car" value="Yes"><span>Yes</span></label><label class="tick"><input type="radio" name="car" value="No"><span>No</span></label></div></fieldset>
-        <fieldset class="field ticks"><legend>Can you carry a bag of groceries up a few steps?</legend><div><label class="tick"><input type="radio" name="carry" value="Yes"><span>Yes</span></label><label class="tick"><input type="radio" name="carry" value="No"><span>No</span></label></div></fieldset>
-        <div class="field">
-          <label for="n-why">Why would you like to be a Neighbor?</label>
-          <textarea id="n-why" name="why" rows="3" maxlength="600" placeholder="A few sentences is perfect."></textarea>
-        </div>
-        <div class="field">
-          <label for="n-heard">How did you hear about us?</label>
-          <select id="n-heard" name="heard">
-            <option value="">Choose one</option>
-            <option>Friend or family</option>
-            <option>Facebook or social media</option>
-            <option>Online search</option>
-            <option>Church or community group</option>
-            <option>Flyer or newspaper</option>
-            <option>Other</option>
-          </select>
-        </div>
-        <button class="btn btn-primary" type="submit">Get on the list</button>
-        <p class="form-consent">By sending this, you agree Show-Me Neighbors may contact you by email, text or phone about our service. Message and data rates may apply. Reply STOP to stop texts. See our <a href="privacy.html">privacy policy</a>.</p>
-        <div class="form-msg" role="status">Thank you! We will send your application as soon as it opens.</div>
-      </form>
+      <div class="center" style="align-self:center">
+        <a class="btn btn-primary" href="apply/" style="font-size:1.15rem;padding:16px 30px">Start my application</a>
+        <p class="form-consent" style="margin-top:12px">Free to apply. Already applied? <a href="apply/">See where your application stands</a>. Read the <a href="neighbor-agreement.html">Neighbor Agreement</a>.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -334,7 +282,8 @@
       <h4>Neighbors</h4>
       <ul>
         <li><a href="#why">Why join</a></li>
-        <li><a href="#apply">Get on the list</a></li>
+        <li><a href="apply/">Apply now</a></li>
+        <li><a href="neighbor-agreement.html">Neighbor Agreement</a></li>
       </ul>
     </div>
     <div class="footer-legal">&copy; 2026 Show-Me Neighbors. <a href="privacy.html">Privacy policy</a></div>
