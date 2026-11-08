@@ -74,6 +74,8 @@
   .inv-meta { text-align: right; } .inv-title { font-family: "Nunito", sans-serif; font-weight: 900; font-size: 1.4rem; }
   .inv-to { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
   @media (max-width: 900px) { .cols, .dash, .pgrid, .grid-3 { grid-template-columns: 1fr; } .tabbar button { padding: 10px 12px; } .inv-to { grid-template-columns: 1fr 1fr; } .inv-meta { text-align: left; } }
+  .printcard.sample { position: relative; overflow: hidden; }
+  .printcard.sample::after { content: "SAMPLE"; position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%) rotate(-24deg); font-family: "Nunito", sans-serif; font-weight: 900; font-size: 7rem; color: rgba(235, 157, 28, .16); pointer-events: none; letter-spacing: .1em; }
   @media print {
     body { background: #fff !important; }
     .site-header, .tabbar, .noprint, .back { display: none !important; }
@@ -266,7 +268,7 @@
     if (!rec) { list.innerHTML = '<div class="msg err">' + e(err || 'We could not load your receipts. Please try again in a minute.') + '</div>'; return; }
     var yrs = rec.years.length ? rec.years : [rec.year];
     tools.innerHTML = rec.receipts.length ? '<select id="rc-year" aria-label="Year" style="width:auto">' + yrs.map(function (y) { return '<option' + (y === rec.year ? ' selected' : '') + '>' + e(y) + '</option>'; }).join('') + '</select> <button class="btn btn-primary btn-small" data-v="statement">Print all for ' + e(rec.year) + '</button> <button class="btn btn-ghost btn-small" data-csv="1">Download spreadsheet</button>' : '';
-    if (!rec.receipts.length) { list.innerHTML = '<p class="muted" style="margin:0">No receipts yet. After your first visit, a detailed receipt shows up here and in your email.</p>'; return; }
+    if (!rec.receipts.length) { list.innerHTML = '<p class="muted" style="margin:0 0 12px">No receipts yet. After your first visit, a detailed receipt shows up here and in your email.</p><p style="margin:0 0 10px"><strong>Want to see what you will get?</strong></p><button class="btn btn-ghost btn-small" data-sample="receipt">See a sample receipt</button> <button class="btn btn-ghost btn-small" data-sample="statement">See a sample year-end statement</button>'; return; }
     list.innerHTML = '<div class="tablewrap"><table class="rtable"><thead><tr><th>Visit date</th><th>Receipt</th><th>Loved one</th><th>Neighbor</th><th class="num">Total</th><th>Status</th><th></th></tr></thead><tbody>' + rec.receipts.map(function (r, i) {
       return '<tr><td>' + e(dShort(r.visit_start)) + '</td><td>' + e(r.number) + '</td><td>' + e(r.loved_one_name) + '</td><td>' + e(r.neighbor_name || '') + '</td><td class="num">' + money(net(r)) + '</td><td>' + (r.status === 'Paid' ? '<span class="chip ok">Paid</span>' : '<span class="chip">' + e(r.status) + '</span>') + '</td><td><button class="linkbtn" data-rc="' + i + '">View</button></td></tr>';
     }).join('') + '</tbody></table></div><p class="small muted" style="margin:10px 0 0">' + rec.receipts.length + ' visit' + (rec.receipts.length === 1 ? '' : 's') + ' in ' + e(rec.year) + ', ' + money(rec.receipts.reduce(function (a, r) { return a + net(r); }, 0)) + ' total.</p>';
@@ -285,14 +287,28 @@
       '<tr class="tot"><td colspan="3">Total paid</td><td class="num">' + money(r.total) + '</td></tr>' + (+r.refunded ? '<tr><td colspan="3">Refunded</td><td class="num">-' + money(r.refunded) + '</td></tr>' : '') + '</tfoot></table>' +
       '<p class="small" style="margin:10px 0 0">Paid with ' + e(r.paid_with || 'card on file') + '.' + (r.note ? ' ' + e(r.note) : '') + '</p></div>';
   }
+  // Sample receipts so new families can see how billing works. Always clearly marked SAMPLE.
+  var realRec = null, sampleMode = false;
+  function sampleRec() {
+    var you = data.family.first_name + ' ' + data.family.last_name, lo = data.people[0] ? (data.people[0].preferred || data.people[0].first_name) + ' ' + data.people[0].last_name : 'Your loved one';
+    var y = String(new Date().getFullYear()), mk = function (n, d, a, b, svc, hrs, miles, disc) {
+      var t = hrs * 22, m = +(miles * 0.7).toFixed(2), sub = t + m, off = disc ? disc.amount : 0;
+      return { number: 'SAMPLE-' + n, created_at: y + '-' + d + 'T' + b + ':00Z', loved_one_name: lo, visit_start: y + '-' + d + 'T' + a + ':00Z', visit_end: y + '-' + d + 'T' + b + ':00Z', neighbor_name: 'Carol B.', services: svc,
+        lines: [{ label: 'Visit time (weekday rate)', qty: hrs, unit: 'hours', rate: 22, amount: t }].concat(miles ? [{ label: 'Miles driven for errands and rides', qty: miles, unit: 'miles', rate: 0.7, amount: m }] : []),
+        subtotal: sub, discounts: disc ? [disc] : [], total: sub - off, paid_with: 'Visa ending 0000 (sample)', status: 'Paid', refunded: 0 };
+    };
+    return { year: y, years: [y], receipts: [mk('0003', '03-26', '15:00', '17:00', 'Company, Rides', 2, 8, { label: 'Gift card', amount: 20 }), mk('0002', '03-12', '19:00', '21:30', 'Doctor appointment, Errands', 2.5, 14, null), mk('0001', '02-26', '15:00', '17:00', 'Company, Games and hobbies', 2, 0, null)],
+      business: rec ? rec.business : {}, family: { name: you, email: data.family.email }, sample: true };
+  }
+  function sampleBanner() { return sampleMode ? '<div class="msg info noprint" style="margin:0 0 14px"><strong>This is a sample</strong> so you can see what your receipts will look like. Prices shown are examples. No visit or charge happened.</div>' : ''; }
   function receiptScreen() {
-    return '<div class="noprint"><button class="back" data-v="pay">&larr; Payment</button><div class="headrow"><h1>Receipt ' + e(recOne.number) + '</h1><button class="btn btn-primary" data-print="1">Print or save as PDF</button></div></div><div class="card printcard">' + invoice(recOne) + '</div>';
+    return '<div class="noprint"><button class="back" data-v="pay">&larr; Payment</button><div class="headrow"><h1>Receipt ' + e(recOne.number) + '</h1><button class="btn btn-primary" data-print="1">Print or save as PDF</button></div></div>' + sampleBanner() + '<div class="card printcard' + (sampleMode ? ' sample' : '') + '">' + invoice(recOne) + '</div>';
   }
   function statementScreen() {
     var b = rec.business || {}, rs = rec.receipts, tot = rs.reduce(function (a, r) { return a + (+r.total); }, 0), ref = rs.reduce(function (a, r) { return a + (+r.refunded || 0); }, 0);
     var byPerson = {}; rs.forEach(function (r) { byPerson[r.loved_one_name] = (byPerson[r.loved_one_name] || 0) + net(r); });
-    return '<div class="noprint"><button class="back" data-v="pay">&larr; Payment</button><div class="headrow"><h1>' + e(rec.year) + ' year-end statement</h1><button class="btn btn-primary" data-print="1">Print or save as PDF</button></div></div>' +
-      '<div class="card printcard"><div class="inv"><div class="inv-head"><div><div class="inv-brand">Show-Me <span>Neighbors</span></div><div class="small">' + e(b.name || '') + '<br>' + e(b.address || '') + '<br>' + e([b.email, b.phone].filter(Boolean).join(' · ')) + (b.tax_id ? '<br>EIN ' + e(b.tax_id) : '') + '</div></div>' +
+    return '<div class="noprint"><button class="back" data-v="pay">&larr; Payment</button><div class="headrow"><h1>' + e(rec.year) + ' year-end statement</h1><button class="btn btn-primary" data-print="1">Print or save as PDF</button></div></div>' + sampleBanner() +
+      '<div class="card printcard' + (sampleMode ? ' sample' : '') + '"><div class="inv"><div class="inv-head"><div><div class="inv-brand">Show-Me <span>Neighbors</span></div><div class="small">' + e(b.name || '') + '<br>' + e(b.address || '') + '<br>' + e([b.email, b.phone].filter(Boolean).join(' · ')) + (b.tax_id ? '<br>EIN ' + e(b.tax_id) : '') + '</div></div>' +
       '<div class="inv-meta"><div class="inv-title">Year-end statement</div><div class="small"><strong>January 1 to December 31, ' + e(rec.year) + '</strong><br>Prepared ' + e(dShort(new Date().toISOString())) + '</div></div></div>' +
       '<div class="inv-to"><div><div class="eyebrow">Prepared for</div>' + e(rec.family.name) + '<br><span class="small">' + e(rec.family.email) + '</span></div><div><div class="eyebrow">Visits</div>' + rs.length + '</div><div><div class="eyebrow">Total paid</div>' + money(tot) + '</div><div><div class="eyebrow">After refunds</div><strong>' + money(tot - ref) + '</strong></div></div>' +
       '<table class="itable"><thead><tr><th>Visit for</th><th class="num">Paid in ' + e(rec.year) + '</th></tr></thead><tbody>' + Object.keys(byPerson).map(function (k) { return '<tr><td>' + e(k) + '</td><td class="num">' + money(byPerson[k]) + '</td></tr>'; }).join('') + '</tbody></table>' +
@@ -300,7 +316,7 @@
         return '<tr><td>' + e(dShort(r.visit_start)) + '</td><td>' + e(r.number) + '</td><td>' + e(r.loved_one_name) + '</td><td>' + e(r.neighbor_name || '') + '</td><td>' + e(r.services || '') + '</td><td class="num">' + money(net(r)) + '</td></tr>';
       }).join('') + '</tbody><tfoot><tr class="tot"><td colspan="5">Total for ' + e(rec.year) + '</td><td class="num">' + money(tot - ref) + '</td></tr></tfoot></table>' +
       '<p class="small muted" style="margin:14px 0 0">Show-Me Neighbors provides non-medical companionship, rides and errands. Keep this statement with your records. Ask your tax preparer whether any of these visits count toward a credit or deduction for you.</p></div></div>' +
-      '<h2 class="pagebreak" style="margin:26px 0 12px">Detailed receipts</h2>' + rs.slice().reverse().map(function (r) { return '<div class="card printcard" style="margin-bottom:14px">' + invoice(r) + '</div>'; }).join('');
+      '<h2 class="pagebreak" style="margin:26px 0 12px">Detailed receipts</h2>' + rs.slice().reverse().map(function (r) { return '<div class="card printcard' + (sampleMode ? ' sample' : '') + '" style="margin-bottom:14px">' + invoice(r) + '</div>'; }).join('');
   }
   function csvReceipts() {
     var rows = [['Visit date', 'Receipt', 'Loved one', 'Neighbor', 'Help given', 'Subtotal', 'Discounts', 'Total paid', 'Refunded', 'Net paid', 'Paid with', 'Status']].concat(rec.receipts.slice().reverse().map(function (r) {
@@ -411,6 +427,9 @@
       var pf = document.getElementById('pf'); if (pf) pf.hidden = ptab === 'contacts';
       return;
     }
+    var sm = ev.target.closest('[data-sample]');
+    if (sm) { realRec = rec; rec = sampleRec(); sampleMode = true; if (sm.dataset.sample === 'receipt') { recOne = rec.receipts[0]; view = 'receipt'; } else view = 'statement'; return render(); }
+    if (sampleMode && ev.target.closest('[data-v]')) { rec = realRec; sampleMode = false; recOne = null; }
     var rc = ev.target.closest('[data-rc],[data-print],[data-csv]');
     if (rc) {
       if (rc.dataset.rc) { recOne = rec.receipts[+rc.dataset.rc]; view = 'receipt'; return render(); }
