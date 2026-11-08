@@ -198,7 +198,7 @@
       '<div class="bar"><span class="spacer"></span><button class="btn btn-ghost btn-small" id="rf">Refresh</button></div>';
     h += fams.length ? '<div class="tablewrap"><table><thead><tr><th>Joined</th><th>Account</th><th>People they book for</th><th>Notes</th></tr></thead><tbody>' + fams.map(function (f) {
       var ppl = famPeople.filter(function (p) { return p.family_id === f.id; });
-      return '<tr><td>' + when(f.created_at) + '</td><td><strong>' + e(f.first_name + ' ' + f.last_name) + '</strong><br>' + e(f.email) + (f.phone ? '<br>' + e(f.phone) : '') + '<div class="small muted">For ' + e(f.is_for === 'Me' ? 'themselves' : 'a loved one') + (f.heard ? ', heard via ' + e(f.heard) : '') + '</div>' +
+      return '<tr><td>' + when(f.created_at) + '</td><td><strong>' + e(f.first_name + ' ' + f.last_name) + '</strong><br>' + e(f.email) + (f.phone ? '<br>' + e(f.phone) : '') + '<div class="small ' + (f.card_last4 ? 'ok-line' : 'muted') + '">' + (f.card_last4 ? 'Card on file: ' + e(f.card_brand + ' ' + f.card_last4) : 'No card yet') + '</div><div class="small muted">For ' + e(f.is_for === 'Me' ? 'themselves' : 'a loved one') + (f.heard ? ', heard via ' + e(f.heard) : '') + '</div>' +
         (f.email_note ? '<div class="msg err" style="margin-top:6px;padding:6px 8px;font-size:.8rem">' + e(f.email_note) + '</div>' : '') + '</td><td class="det">' + (ppl.map(function (p) {
           var cs = famContacts.filter(function (c) { return c.loved_one_id === p.id; });
           return '<div style="margin-bottom:10px"><b>' + e((p.preferred || p.first_name) + ' ' + p.last_name) + '</b> <span class="' + (p.area === 'Not yet served' ? 'area-out' : 'muted') + '">' + e([p.city, p.zip].filter(Boolean).join(' ') + ', ' + (p.area || '')) + '</span>' +

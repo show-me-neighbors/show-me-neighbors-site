@@ -116,7 +116,11 @@
         '<div class="bar" aria-hidden="true"><span style="width:' + fl.pct + '%"></span></div><div class="muted" style="font-size:.88rem">Profile ' + (fl.pct < 100 ? fl.n + ' of ' + fl.of + ' parts done' : 'complete. Thank you!') + '</div></div>';
     });
     if (data.people.length < 6) h += '<button class="btn btn-ghost" data-edit="new">Add another person</button>';
-    h += '<div class="card" style="margin-top:22px"><h2>Your details</h2><p style="margin:0">' + e(f.first_name + ' ' + f.last_name) + '<br>' + e(f.email) + (f.phone ? '<br>' + e(f.phone) : '') + '</p><button class="linkbtn" style="margin-top:10px" data-v="me">Edit my details</button></div>';
+    var cd = f.card;
+    h += '<div class="card" style="margin-top:22px"><h2>How you will pay</h2>' + (cd
+      ? '<p style="margin:0"><strong>' + e(cd.brand) + ' ending in ' + e(cd.last4) + '</strong><br><span class="muted">Expires ' + e(cd.exp) + '</span></p><p class="muted" style="font-size:.92rem">We only charge this card after a visit is finished, for that visit. You will get a receipt by email every time.</p><button class="linkbtn" data-v="card">Use a different card</button> <button class="linkbtn red" style="margin-left:14px" data-cardrm="1">Remove</button>'
+      : '<p style="margin-top:0">Add a card now so you are ready to book. <strong>You will not be charged now.</strong> We only charge after each visit is finished, for that visit.</p><button class="btn btn-primary btn-small" data-v="card">Add a card</button>') + '</div>';
+    h += '<div class="card"><h2>Your details</h2><p style="margin:0">' + e(f.first_name + ' ' + f.last_name) + '<br>' + e(f.email) + (f.phone ? '<br>' + e(f.phone) : '') + '</p><button class="linkbtn" style="margin-top:10px" data-v="me">Edit my details</button></div>';
     return h;
   }
   function meScreen() {
@@ -156,6 +160,40 @@
     }
     return h;
   }
+  function cardScreen() {
+    return '<button class="back" data-v="home">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">Add a card</h1>' +
+      '<div class="card"><p style="margin-top:0"><strong>You will not be charged now.</strong> After each visit is finished, we charge this card for that visit and email you a receipt. You can change or remove it any time.</p>' +
+      '<div id="pay-el" style="min-height:120px"><p class="muted">Loading the secure card form...</p></div>' +
+      '<button class="btn btn-primary" id="card-save" style="width:100%;margin-top:16px" disabled>Save card</button><div id="card-msg"></div>' +
+      '<p class="muted" style="font-size:.85rem;margin-bottom:0">Your card is kept safely by Stripe, our payment company. Show-Me Neighbors never sees or stores your full card number.</p></div>';
+  }
+  var stripeJs = null, stripeEls = null;
+  function loadStripeJs() {
+    return new Promise(function (res, rej) {
+      if (window.Stripe) return res();
+      var sc = document.createElement('script'); sc.src = 'https://js.stripe.com/v3/'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc);
+    });
+  }
+  async function mountCard() {
+    var box = document.getElementById('pay-el'), btn = document.getElementById('card-save');
+    var r = await call('card_start');
+    if (!r || !r.ok || !r.client_secret || !r.stripe_pk) { box.innerHTML = '<div class="msg err">' + e((r && r.error) || 'We could not open the card form. Please try again in a minute.') + '</div>'; return; }
+    try { await loadStripeJs(); } catch (x) { box.innerHTML = '<div class="msg err">We could not load the secure card form. Please check your connection and try again.</div>'; return; }
+    stripeJs = window.Stripe(r.stripe_pk);
+    stripeEls = stripeJs.elements({ clientSecret: r.client_secret, appearance: { theme: 'stripe', variables: { colorPrimary: '#376d93', colorText: '#13204b', fontFamily: 'Nunito Sans, Arial, sans-serif', borderRadius: '12px', fontSizeBase: '17px' } }, fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&display=swap' }] });
+    box.innerHTML = '';
+    var el = stripeEls.create('payment', { layout: 'tabs', wallets: { applePay: 'never', googlePay: 'never' } });
+    el.mount(box);
+    el.on('ready', function () { btn.disabled = false; });
+    btn.onclick = async function () {
+      busy(btn, 'Saving...'); say('card-msg', '');
+      var res = await stripeJs.confirmSetup({ elements: stripeEls, redirect: 'if_required', confirmParams: { return_url: location.origin + location.pathname } });
+      if (res.error) { unbusy(btn); return say('card-msg', res.error.message || 'Your card was not saved. Please try again.'); }
+      var d = await call('card_done', { setup_intent: res.setupIntent && res.setupIntent.id });
+      unbusy(btn);
+      if (!got(d, 'Card saved. You will not be charged until after a visit.', 'home')) say('card-msg', (d && d.error) || 'Your card was not saved. Please try again.');
+    };
+  }
   function contactScreen() {
     var p = person(contactFor), c = contactId === 'new' ? { emergency: !p.contacts.some(function (x) { return x.emergency; }), gets_updates: true } : p.contacts.filter(function (x) { return x.id === contactId; })[0];
     return '<button class="back" data-v="person">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">' + (contactId === 'new' ? 'Add a contact' : 'Edit contact') + '</h1><form id="cf" class="card" novalidate>' +
@@ -168,9 +206,10 @@
 
   function render(note) {
     if (!data) { app.innerHTML = startScreen(note); prefill(); return toggleNames(); }
-    var v = { home: homeScreen, me: meScreen, person: personScreen, contact: contactScreen }[view] || homeScreen;
+    var v = { home: homeScreen, me: meScreen, person: personScreen, contact: contactScreen, card: cardScreen }[view] || homeScreen;
     app.innerHTML = v(note);
     window.scrollTo(0, 0);
+    if (v === cardScreen) mountCard();
   }
   function prefill() { var z = new URLSearchParams(location.search).get('zip'), el = document.getElementById('s-zip'); if (el && z && /^\d{5}$/.test(z) && !el.value) el.value = z; }
   function toggleNames() { var r = app.querySelector('[name=is_for]:checked'), b = document.getElementById('lo-names'); if (b && r) b.hidden = r.value === 'Me'; }
@@ -206,7 +245,13 @@
 
   app.addEventListener('change', function (ev) { if (ev.target.name === 'is_for') toggleNames(); });
   app.addEventListener('click', async function (ev) {
-    var t = ev.target.closest('[data-v],[data-edit],[data-cedit],[data-del],[data-cdel]'); if (!t) return;
+    var t = ev.target.closest('[data-v],[data-edit],[data-cedit],[data-del],[data-cdel],[data-cardrm]'); if (!t) return;
+    if (t.dataset.cardrm) {
+      if (t.dataset.sure !== '1') { t.dataset.sure = '1'; t.textContent = 'Click again to remove this card'; return; }
+      busy(t, 'Removing...'); var rr = await call('card_remove');
+      if (!got(rr, 'Card removed.', 'home')) { unbusy(t); alertMsg(rr); }
+      return;
+    }
     if (t.dataset.v) { view = t.dataset.v; return render(); }
     if (t.dataset.edit) { editId = t.dataset.edit; view = 'person'; return render(); }
     if (t.dataset.cedit) { contactFor = editId; contactId = t.dataset.cedit; view = 'contact'; return render(); }
