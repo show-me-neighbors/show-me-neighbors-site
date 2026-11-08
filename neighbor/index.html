@@ -9,6 +9,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/styles.css?v=1108a">
 <link rel="icon" href="../assets/favicon.png" type="image/png"><link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#13204b">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Neighbors">
 <style>
   body { background: #f5f8fc; }
   main { padding-block: 22px 70px; }
@@ -52,6 +56,13 @@
   .vis { border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; } .vis summary { cursor: pointer; }
   dl.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; } dl.kv dt { color: var(--ink-soft); } dl.kv dd { margin: 0; font-weight: 700; }
   .ds { display: none; }
+  .reach { display: grid; gap: 14px; }
+  .reach > div { border-top: 1px solid var(--line); padding-top: 12px; }
+  .reach > div:first-child { border-top: 0; padding-top: 0; }
+  .reach h3 { font-size: 1rem; margin: 0 0 4px; }
+  .phone-in { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+  .phone-in input { max-width: 200px; }
+  .codebox input { font-size: 1.4rem; letter-spacing: 6px; max-width: 200px; }
   @media (max-width: 560px) { .dl { display: none; } .ds { display: inline; } .week th .small { display: none; } .toplinks .muted { display: none; } .week th { font-size: .82rem; } }
   @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } .tabbar button { padding: 10px 12px; } .week th, .week td { padding: 6px 2px; } .slot { font-size: .8rem; padding: 9px 2px; } }
 </style>
@@ -75,7 +86,7 @@
   // Same sign-in as the Neighbor application, so applicants and Neighbors sign in once.
   var sb = supabase.createClient(SB_URL, SB_KEY, { auth: { storageKey: 'smn-apply-auth' } });
   var app = document.getElementById('app'), whoEl = document.getElementById('who');
-  var me = null, a = null, view = 'home', draft = null;
+  var me = null, a = null, view = 'home', draft = null, codeEmail = '';
   var HELP = ['Company', 'Rides', 'Errands', 'Around the house', 'Meals', 'Tech help', 'Walks', 'Games and hobbies', 'Doctor appointments'];
   var DAYS = [['Mon', 'Monday'], ['Tue', 'Tuesday'], ['Wed', 'Wednesday'], ['Thu', 'Thursday'], ['Fri', 'Friday'], ['Sat', 'Saturday'], ['Sun', 'Sunday']];
   var SLOTS = [['08:00-12:00', 'Morning', '8 to noon'], ['12:00-17:00', 'Afternoon', 'noon to 5'], ['17:00-20:00', 'Evening', '5 to 8']];
@@ -109,13 +120,13 @@
   function home(note) {
     var on = a.taking_visits, setUp = Object.keys(a.availability).length > 0;
     var h = '<div class="headrow"><div><h1>Hi, ' + e(me.first) + '</h1><p class="muted" style="margin:2px 0 0">' + (a.approved ? 'You are an approved Show-Me Neighbor.' : 'You are almost there. Set up your hours now so you are ready the day you are approved.') + '</p></div></div>' + (note || '');
+    h += '<div class="grid-2" style="margin-bottom:18px"><div class="card"><h2>Visit offers</h2><div id="offers"><p class="muted small">Checking for offers...</p></div></div>' +
+      '<div class="card"><h2>Your upcoming visits</h2><div id="upcoming"><p class="muted small">Loading...</p></div></div></div>';
     h += '<div class="tiles"><div class="card"><h2>Taking visits</h2>' +
-      '<label class="switch"><input type="checkbox" id="onoff"' + (on ? ' checked' : '') + (a.approved ? '' : ' disabled') + '><span class="track" aria-hidden="true"></span><span class="' + (on ? 'status-on' : 'status-off') + '">' + (on ? 'On. We will text you visit offers.' : 'Off. You will not get offers.') + '</span></label>' +
+      '<label class="switch"><input type="checkbox" id="onoff"' + (on ? ' checked' : '') + (a.approved ? '' : ' disabled') + '><span class="track" aria-hidden="true"></span><span class="' + (on ? 'status-on' : 'status-off') + '">' + (on ? 'On. You will get visit offers.' : 'Off. You will not get offers.') + '</span></label>' +
       '<p class="small muted" style="margin:12px 0 0">' + (a.approved ? (setUp ? 'Turn it off any time you need a break.' : 'Set your free times in My hours first.') : 'This turns on once you are approved.') + '</p><div id="onoff-msg" style="margin-top:8px"></div></div>' +
       '<div class="card"><h2>When you are free</h2><p class="small" style="margin:0 0 10px">' + e(freeSummary(a.availability)) + '</p><p class="small muted" style="margin:0 0 12px">Up to ' + e(a.radius_miles) + ' miles from ' + e(me.zip) + '</p><button class="btn ' + (setUp ? 'btn-ghost' : 'btn-primary') + ' btn-small" data-v="hours">' + (setUp ? 'Change my hours' : 'Set my hours') + '</button></div>' +
-      '<div class="card"><h2>Your pay</h2><p class="small" style="margin:0 0 6px"><strong>' + money(a.pay_day) + ' an hour</strong> weekdays, <strong>' + money(a.pay_eve) + '</strong> evenings and weekends</p><p class="small" style="margin:0 0 6px">Mileage at the IRS rate, 100% yours</p><p class="small muted" style="margin:0 0 12px">Paid every Friday to your bank</p><button class="btn btn-ghost btn-small" data-v="pay">See pay details</button></div></div>';
-    h += '<div class="grid-2" style="margin-top:18px"><div class="card"><h2>Visit offers</h2><div id="offers"><p class="muted small">Checking for offers...</p></div></div>' +
-      '<div class="card"><h2>Your upcoming visits</h2><div id="upcoming"><p class="muted small">Loading...</p></div></div></div>';
+      reachCard() + '<div class="card"><h2>Your pay</h2><p class="small" style="margin:0 0 6px"><strong>' + money(a.pay_day) + ' an hour</strong> weekdays, <strong>' + money(a.pay_eve) + '</strong> evenings and weekends</p><p class="small" style="margin:0 0 6px">Mileage at the IRS rate, 100% yours</p><p class="small muted" style="margin:0 0 12px">Paid every Friday to your bank</p><button class="btn btn-ghost btn-small" data-v="pay">See pay details</button></div></div>';
     return h;
   }
   function hours(note) {
@@ -156,6 +167,55 @@
       if (r.error) { var j = null; try { j = await r.error.context.json(); } catch (x) {} return j || { ok: false, error: 'We could not reach Show-Me Neighbors. Please try again.' }; }
       return r.data;
     } catch (x) { return { ok: false, error: 'We could not reach Show-Me Neighbors. Please try again.' }; }
+  }
+  // ---------- how offers reach you: email always, phone alerts, texts ----------
+  var swReg = null, pushSub = null;
+  var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var installed = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  var canPush = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  function device() { return isIOS ? 'iPhone' : /Android/.test(navigator.userAgent) ? 'Android phone' : 'computer'; }
+  function alertsPart() {
+    var h = '<div><h3>Alerts on this ' + device() + '</h3>';
+    if (pushSub) return h + '<p class="small" style="margin:0 0 8px"><span class="status-on">On.</span> This ' + device() + ' buzzes when there is a new offer.</p><button class="btn btn-ghost btn-small" data-push="test">Send a test alert</button> <button class="linkbtn" style="margin-left:12px" data-push="off">Turn off</button><div id="push-msg" style="margin-top:8px"></div></div>';
+    if (isIOS && !installed) return h + '<p class="small" style="margin:0">On iPhone, alerts work once the app is on your home screen:</p><ol class="small" style="margin:6px 0 0;padding-left:20px"><li>Tap the <strong>Share</strong> button at the bottom of Safari (the square with an arrow).</li><li>Tap <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</li><li>Open <strong>Neighbors</strong> from your home screen, sign in, and come back here.</li></ol></div>';
+    if (!canPush) return h + '<p class="small muted" style="margin:0">This browser can not show alerts. Use Chrome on Android, or Safari on iPhone. You still get every offer by email.</p></div>';
+    if (Notification.permission === 'denied') return h + '<p class="small" style="margin:0">Alerts are blocked for this app. Turn on notifications for it in this ' + device() + '\'s settings, then come back here.</p></div>';
+    return h + '<p class="small" style="margin:0 0 8px">Get an alert the moment a family near you needs a visit. The first Neighbor to accept gets it.</p><button class="btn btn-primary btn-small" data-push="on">Turn on alerts</button><div id="push-msg" style="margin-top:8px"></div></div>';
+  }
+  function textsPart() {
+    var on = a.text_offers;
+    var h = '<div><h3>Texts</h3><label class="switch"><input type="checkbox" id="txt"' + (on ? ' checked' : '') + '><span class="track" aria-hidden="true"></span><span class="' + (on ? 'status-on' : 'status-off') + '">' + (on ? 'On. Text me visit offers.' : 'Off') + '</span></label>';
+    h += '<div class="phone-in"><label class="small" for="txt-ph" style="font-weight:800">Cell phone</label><input id="txt-ph" type="tel" inputmode="tel" autocomplete="tel" value="' + e(a.phone || '') + '" placeholder="(417) 555-0123"></div>';
+    if (a.text_stopped) h += '<p class="small" style="margin:0 0 6px">You replied STOP, so texts are off. Turn them back on here any time.</p>';
+    else if (on && !a.texts_live) h += '<p class="small" style="margin:0 0 6px"><strong>Texts are starting soon.</strong> You are all set. They will start on their own.</p>';
+    h += '<p class="small muted" style="margin:0">By turning this on, you agree to get automated texts about visit offers from Show-Me Neighbors at this number, up to a few a day. Message and data rates may apply. Reply STOP to end, HELP for help. Texts are not required to be a Neighbor. See our <a href="../privacy.html">privacy policy</a>.</p><div id="txt-msg" style="margin-top:8px"></div></div>';
+    return h;
+  }
+  function reachCard() {
+    return '<div class="card" id="reach"><h2>How we tell you about offers</h2><div class="reach"><div><h3>Email</h3><p class="small" style="margin:0"><span class="status-on">Always on.</span> Every offer goes to ' + e(a.email) + '.</p></div>' + alertsPart() + textsPart() + '</div></div>';
+  }
+  function redrawReach(msgId, text, kind) {
+    var c = document.getElementById('reach'); if (!c) return;
+    var tmp = document.createElement('div'); tmp.innerHTML = reachCard(); c.replaceWith(tmp.firstChild);
+    if (text) say(msgId, text, kind);
+  }
+  function keyBytes(k) { var p = '='.repeat((4 - k.length % 4) % 4), raw = atob((k + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(raw, function (c) { return c.charCodeAt(0); }); }
+  async function setupSW() {
+    if (!('serviceWorker' in navigator)) return;
+    try { swReg = await navigator.serviceWorker.register('sw.js', { scope: './' }); if (canPush) pushSub = await swReg.pushManager.getSubscription(); } catch (x) { swReg = null; }
+    navigator.serviceWorker.addEventListener('message', function (ev) { if (ev.data === 'refresh' && me && view === 'home') loadWork(); });
+  }
+  async function pushOn(btn) {
+    busy(btn, 'Turning on...');
+    try {
+      if (!swReg) await setupSW();
+      var perm = await Notification.requestPermission();
+      if (perm !== 'granted') { unbusy(btn); return redrawReach('push-msg', perm === 'denied' ? 'Alerts were blocked. Turn on notifications for this app in your phone\'s Settings.' : 'Alerts were not turned on. Tap the button and choose Allow.', 'err'); }
+      var sub = await swReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(a.push_key) });
+      var r = await call('push_on', { sub: sub.toJSON(), device: device() });
+      if (!r || !r.ok) { await sub.unsubscribe(); unbusy(btn); return say('push-msg', (r && r.error) || 'That did not work. Please try again.'); }
+      pushSub = sub; redrawReach('push-msg', r.tested ? 'Alerts are on. We just sent a test alert to this ' + device() + '.' : 'Alerts are on.', 'ok');
+    } catch (x) { unbusy(btn); say('push-msg', 'This ' + device() + ' would not turn on alerts. Please try again, or use Chrome on Android or the home-screen app on iPhone.'); }
   }
   var work = null;
   function dLong(iso) { return new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Chicago', weekday: 'long', month: 'long', day: 'numeric' }); }
@@ -247,6 +307,12 @@
   }
 
   app.addEventListener('click', async function (ev) {
+    var pb = ev.target.closest('[data-push]');
+    if (pb) {
+      if (pb.dataset.push === 'on') return pushOn(pb);
+      if (pb.dataset.push === 'test') { busy(pb, 'Sending...'); var tr = await call('push_test'); unbusy(pb); return say('push-msg', tr && tr.ok && tr.sent ? 'Test alert sent. It should show up in a few seconds.' : 'The test alert did not go through. Try turning alerts off and on again.', tr && tr.ok && tr.sent ? 'ok' : 'err'); }
+      if (pb.dataset.push === 'off') { busy(pb, '...'); var ep = pushSub && pushSub.endpoint; try { if (pushSub) await pushSub.unsubscribe(); } catch (x) {} pushSub = null; if (ep) await call('push_off', { endpoint: ep }); return redrawReach('push-msg', 'Alerts are off on this ' + device() + '.', 'ok'); }
+    }
     var ci = ev.target.closest('[data-clockin]');
     if (ci) {
       busy(ci, 'Checking in...'); var loc = await where();
@@ -288,6 +354,12 @@
   });
   app.addEventListener('input', function (ev) { if (ev.target.id === 'radius') { draft.radius_miles = +ev.target.value; document.getElementById('radius-out').textContent = ev.target.value + ' miles'; } });
   app.addEventListener('change', async function (ev) {
+    if (ev.target.id === 'txt') {
+      var want2 = ev.target.checked; ev.target.disabled = true;
+      var tr2 = await call('texts', { on: want2, phone: document.getElementById('txt-ph').value.trim() });
+      if (tr2 && tr2.ok) { setMe(tr2.me); return redrawReach('txt-msg', want2 ? 'Saved. Texts are on.' : 'Texts are off. You still get every offer by email' + (pushSub ? ' and alert.' : '.'), 'ok'); }
+      ev.target.checked = !want2; ev.target.disabled = false; return say('txt-msg', (tr2 && tr2.error) || 'That did not work. Please try again.');
+    }
     if (ev.target.id !== 'onoff') return;
     var want = ev.target.checked; ev.target.disabled = true;
     var r = await call('save_app', { availability: a.availability, radius_miles: a.radius_miles, bio: a.bio, help_ok: a.help_ok, pet_allergies: a.pet_allergies, taking_visits: want });
@@ -304,12 +376,28 @@
       if (r && r.ok) { work = null; earn = null; return render('<div class="msg ok">Thank you! Visit finished. You earned ' + money(r.earned) + ', paid to your bank on Friday. Your note was sent to the family.</div>'); }
       unbusy(b); bx.innerHTML = '<div class="msg err" style="margin:8px 0 0">' + e((r && r.error) || 'That did not work.') + '</div>'; return;
     }
+    if (ev.target.id === 'cf') {
+      var cb = ev.target.querySelector('button'), code = document.getElementById('cf-code').value.replace(/\D/g, '');
+      if (code.length !== 6) return say('cf-msg', 'Please type the 6-digit code from the email.');
+      busy(cb, 'Signing in...');
+      var vr = await sb.auth.verifyOtp({ email: codeEmail, token: code, type: 'email' });
+      if (vr.error) vr = await sb.auth.verifyOtp({ email: codeEmail, token: code, type: 'magiclink' });
+      if (vr.error) { unbusy(cb); return say('cf-msg', 'That code did not work. It may have expired. Ask for a new email above.'); }
+      return start();
+    }
     if (ev.target.id !== 'lf') return;
     var btn = ev.target.querySelector('button'); busy(btn, 'Sending...');
-    var r = await call('link', { email: document.getElementById('lf-em').value.trim() });
+    var em = document.getElementById('lf-em').value.trim();
+    var r = await call('link', { email: em, app: true });
     unbusy(btn);
-    say('lf-msg', r && r.ok ? 'If we have a Neighbor account for that email, a link is on its way. It works once and expires in an hour.' : ((r && r.error) || 'That did not work. Please try again.'), r && r.ok ? 'ok' : 'err');
+    if (!r || !r.ok) return say('lf-msg', (r && r.error) || 'That did not work. Please try again.');
+    codeEmail = em;
+    document.getElementById('lf-msg').innerHTML = '<div class="msg ok" style="margin:0 0 12px">If we have a Neighbor account for that email, a sign-in email is on its way. Tap the button in it, or type the 6-digit code from it here.</div>' +
+      '<form id="cf" class="codebox"><div class="field"><label for="cf-code">6-digit code</label><input id="cf-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required></div><button class="btn btn-primary">Sign in</button></form><div id="cf-msg" style="margin-top:10px"></div>';
   });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && me && view === 'home') loadWork(); });
+  // Start the app right away; once the alert worker is ready, refresh the alerts part of the card
+  var swDone = setupSW().then(function () { if (me && view === 'home') redrawReach(); }, function () {});
   start();
 })();
 </script>

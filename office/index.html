@@ -252,7 +252,7 @@
   function renderEmails() {
     var h = nav() + '<h1 style="font-size:1.9rem;margin-bottom:0">Emails</h1><p class="muted" style="margin:4px 0 16px">Every automatic email Show-Me Neighbors sends. A failed one shows in red here and on the person.</p>';
     h += msgs.length ? '<div class="tablewrap"><table><thead><tr><th>When</th><th>To</th><th>Subject</th><th>Result</th></tr></thead><tbody>' + msgs.map(function (m) {
-      return '<tr><td>' + when(m.at) + '</td><td>' + e(m.to_email) + '</td><td>' + e(m.subject) + '</td><td>' + (m.status === 'Sent' ? '<span class="ok-line">Sent</span>' : '<span class="area-out">Failed: ' + e(m.error || '') + '</span>') + '</td></tr>';
+      return '<tr><td>' + when(m.at) + '</td><td>' + (m.channel === 'text' ? '<strong>Text:</strong> ' : m.channel === 'alert' ? '<strong>Alert:</strong> ' : '') + e(m.to_email || m.to_phone || '') + '</td><td>' + e(m.subject) + '</td><td>' + (m.status === 'Sent' ? '<span class="ok-line">Sent</span>' : '<span class="area-out">Failed: ' + e(m.error || '') + '</span>') + '</td></tr>';
     }).join('') + '</tbody></table></div>' : '<div class="card">No emails sent yet.</div>';
     app.innerHTML = h;
   }
