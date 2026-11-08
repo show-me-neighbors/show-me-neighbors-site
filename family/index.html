@@ -32,7 +32,37 @@
   .person-card { display: flex; flex-direction: column; justify-content: space-between; min-height: 170px; }
   .add-tile { border: 2px dashed var(--line); border-radius: 18px; background: transparent; font: inherit; font-weight: 800; color: var(--brick); cursor: pointer; min-height: 170px; }
   .add-tile:hover { border-color: var(--brick); background: #fff; }
-  @media (max-width: 900px) { .cols, .dash, .pgrid { grid-template-columns: 1fr; } .hero-band { padding: 22px; } }
+  .tabbar { display: flex; gap: 4px; border-bottom: 2px solid var(--line); margin: 0 0 22px; overflow-x: auto; }
+  .tabbar button { font: inherit; font-weight: 800; font-size: 1rem; color: var(--ink-soft); background: none; border: 0; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: 12px 18px; cursor: pointer; white-space: nowrap; }
+  .tabbar button.on { color: var(--ink); border-color: var(--sun); }
+  .tabbar button:hover { color: var(--ink); }
+  .tabbody .card { padding: 22px 24px; }
+  .tabbody .card p, .tabbody .card li, .tabbody .muted { font-size: 1rem; }
+  .tabbody .small, .tabbody .muted.small { font-size: .9rem; }
+  .headrow { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+  .headrow h1 { font-size: 2rem; margin: 0; }
+  .soon { background: #fff4df; border-radius: 999px; padding: 10px 18px; font-size: .95rem; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+  .tile { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+  .tile .btn { align-self: flex-start; margin-top: 8px; }
+  .tile-top { display: flex; gap: 14px; align-items: center; }
+  .tile-top strong { font-size: 1.1rem; }
+  .eyebrow { margin: 0; }
+  .lrow { display: flex; gap: 14px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .lrow:last-child { border-bottom: 0; }
+  .lmeta { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip.ok { background: #e3f1e6; color: #2e7d4f; }
+  .subtabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .subtabs button { font: inherit; font-weight: 800; font-size: .95rem; padding: 9px 16px; border-radius: 999px; border: 2px solid var(--line); background: #fff; cursor: pointer; }
+  .subtabs button.on { border-color: var(--brick); background: #e3edf6; }
+  .subtabs button:disabled { opacity: .45; cursor: not-allowed; }
+  .pane { margin: 0; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .grid-3 textarea { min-height: 150px; }
+  .savebar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; border-top: 1px solid var(--line); margin-top: 18px; padding-top: 16px; }
+  .savebar .msg { margin: 0; }
+  .contacts { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  @media (max-width: 900px) { .cols, .dash, .pgrid, .grid-3 { grid-template-columns: 1fr; } .tabbar button { padding: 10px 12px; } }
   .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 16px; }
   .card h2 { margin-top: 0; }
   .muted { color: var(--ink-soft); }
@@ -122,68 +152,91 @@
       '<button class="btn btn-primary" style="width:100%">Make my account</button><div id="sf-msg"></div></form></div>';
   }
 
-  // ---------- signed in ----------
+  // ---------- signed in: top tabs ----------
+  var TABS = [['home', 'Home'], ['people', 'Loved ones'], ['pay', 'Payment'], ['me', 'Account']];
+  var TAB_OF = { home: 'home', people: 'people', person: 'people', contact: 'people', pay: 'pay', card: 'pay', me: 'me' };
+  var ptab = 'basics';
+  function tabbar() {
+    return '<nav class="tabbar" aria-label="Your account">' + TABS.map(function (t) { return '<button data-v="' + t[0] + '" class="' + (TAB_OF[view] === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</nav>';
+  }
+  function bookBtn() {
+    return data.bookings_open ? '<button class="btn btn-primary" data-v="people">Book a visit</button>' : '<span class="soon"><strong>Booking opens soon.</strong> We will email you the day it opens.</span>';
+  }
   function homeScreen(note) {
     var f = data.family, cd = f.card;
-    var h = '<div class="hero-band"><div><h1>Hi, ' + e(f.first_name) + '</h1><p>Your Show-Me Neighbors family account</p></div>' +
-      (data.bookings_open ? '<div class="pill"><strong>Booking is open.</strong> Choose a person below to book a visit.</div>'
-        : '<div class="pill"><strong>Booking opens soon.</strong> We are welcoming our first Neighbors now. Finish your profile, and we will email you the moment you can book your first visit.</div>') + '</div>' + (note || '');
-    h += '<div class="dash"><div><h2 class="section-h">' + (data.people.length > 1 ? 'The people you book for' : 'Who the visits are for') + '</h2><div class="people">';
+    var h = '<div class="headrow"><div><h1>Hi, ' + e(f.first_name) + '</h1><p class="muted" style="margin:2px 0 0">Here is everything for your family in one place.</p></div>' + bookBtn() + '</div>' + (note || '');
+    h += '<div class="tiles">';
     data.people.forEach(function (p) {
       var fl = filled(p), init = (p.preferred || p.first_name || '?').charAt(0).toUpperCase();
-      h += '<div class="card person-card"><div><div style="display:flex;gap:14px;align-items:center"><div class="initial">' + e(init) + '</div><div><strong style="font-size:1.15rem">' + e(nameOf(p)) + '</strong>' + (p.is_self ? ' <span class="chip">You</span>' : '') +
-        '<div class="muted" style="font-size:.92rem">' + e([p.city, p.zip].filter(Boolean).join(', ')) + (p.area === 'Not yet served' ? ' <span class="chip red">Not in our area yet</span>' : '') + '</div></div></div>' +
-        '<div class="bar" aria-hidden="true" style="max-width:none;margin-top:16px"><span style="width:' + fl.pct + '%"></span></div><div class="muted" style="font-size:.88rem">Profile ' + (fl.pct < 100 ? fl.n + ' of ' + fl.of + ' parts done' : 'complete. Thank you!') + '</div></div>' +
-        '<div style="margin-top:14px"><button class="btn ' + (fl.pct < 100 ? 'btn-primary' : 'btn-ghost') + ' btn-small" data-edit="' + p.id + '">' + (fl.pct < 100 ? 'Finish profile' : 'Edit profile') + '</button></div></div>';
+      h += '<div class="card tile"><div class="tile-top"><div class="initial">' + e(init) + '</div><div><div class="eyebrow">Loved one</div><strong>' + e(nameOf(p)) + '</strong><div class="muted small">' + e([p.city, p.zip].filter(Boolean).join(', ')) + '</div></div></div>' +
+        (p.area === 'Not yet served' ? '<span class="chip red">Not in our area yet</span>' : '') +
+        '<div class="bar" aria-hidden="true"><span style="width:' + fl.pct + '%"></span></div><div class="muted small">Profile ' + (fl.pct < 100 ? fl.n + ' of ' + fl.of + ' parts done' : 'complete') + '</div>' +
+        '<button class="btn ' + (fl.pct < 100 ? 'btn-primary' : 'btn-ghost') + ' btn-small" data-edit="' + p.id + '">' + (fl.pct < 100 ? 'Finish profile' : 'View profile') + '</button></div>';
     });
-    if (data.people.length < 6) h += '<button class="add-tile" data-edit="new">+ Add another person</button>';
-    h += '</div></div><div class="stack"><div class="card"><h2 style="margin-top:0">How you will pay</h2>' + (cd
-      ? '<p style="margin:0"><strong>' + e(cd.brand) + ' ending in ' + e(cd.last4) + '</strong><br><span class="muted">Expires ' + e(cd.exp) + '</span></p><p class="muted" style="font-size:.92rem">We only charge this card after a visit is finished, for that visit. You will get a receipt by email every time.</p><button class="linkbtn" data-v="card">Use a different card</button> <button class="linkbtn red" style="margin-left:14px" data-cardrm="1">Remove</button>'
-      : '<p style="margin-top:0">Add a card now so you are ready to book. <strong>You will not be charged now.</strong> We only charge after each visit is finished, for that visit.</p><button class="btn btn-primary btn-small" data-v="card">Add a card</button>') + '</div>';
-    h += '<div class="card"><h2 style="margin-top:0">Your details</h2><p style="margin:0">' + e(f.first_name + ' ' + f.last_name) + '<br>' + e(f.email) + (f.phone ? '<br>' + e(f.phone) : '') + '</p><button class="linkbtn" style="margin-top:10px" data-v="me">Edit my details</button></div>' +
-      '<div class="card"><h2 style="margin-top:0">Questions?</h2><p style="margin:0">Email us at <strong>hello@showmeneighbors.com</strong>. A real person reads every message.</p></div></div></div>';
+    h += '<div class="card tile"><div class="tile-top"><div class="initial" style="background:#fff4df;color:#a86a00">$</div><div><div class="eyebrow">Payment</div><strong>' + (cd ? e(cd.brand) + ' ending in ' + e(cd.last4) : 'No card yet') + '</strong><div class="muted small">' + (cd ? 'Expires ' + e(cd.exp) : 'You will not be charged now') + '</div></div></div>' +
+      '<p class="small muted" style="margin:10px 0">We only charge after each visit is finished, for that visit.</p><button class="btn ' + (cd ? 'btn-ghost' : 'btn-primary') + ' btn-small" data-v="' + (cd ? 'pay' : 'card') + '">' + (cd ? 'Manage card' : 'Add a card') + '</button></div>';
+    h += '<div class="card tile"><div class="tile-top"><div class="initial" style="background:#e3f1e6;color:#2e7d4f">?</div><div><div class="eyebrow">Questions</div><strong>We are here to help</strong><div class="muted small">A real person reads every message</div></div></div>' +
+      '<p class="small" style="margin:10px 0">Email <strong>hello@showmeneighbors.com</strong></p><button class="btn btn-ghost btn-small" data-v="people">Add another loved one</button></div>';
+    return h + '</div>';
+  }
+  function peopleScreen(note) {
+    var h = '<div class="headrow"><div><h1>Loved ones</h1><p class="muted" style="margin:2px 0 0">The people you book visits for. Up to 6.</p></div>' + (data.people.length < 6 ? '<button class="btn btn-primary" data-edit="new">+ Add a loved one</button>' : '') + '</div>' + (note || '');
+    h += '<div class="card" style="padding:6px 22px">' + data.people.map(function (p) {
+      var fl = filled(p), em = (p.contacts || []).some(function (c) { return c.emergency; });
+      return '<div class="lrow"><div class="initial">' + e((p.preferred || p.first_name || '?').charAt(0).toUpperCase()) + '</div><div style="flex:1;min-width:0"><strong>' + e(nameOf(p)) + '</strong>' + (p.is_self ? ' <span class="chip">You</span>' : '') +
+        '<div class="muted small">' + e([p.street, p.city, p.zip].filter(Boolean).join(', ')) + '</div></div>' +
+        '<div class="lmeta small">' + (fl.pct < 100 ? '<span class="chip">Profile ' + fl.n + ' of ' + fl.of + '</span>' : '<span class="chip ok">Profile complete</span>') + (em ? '' : ' <span class="chip red">No emergency contact</span>') + '</div>' +
+        '<button class="btn btn-ghost btn-small" data-edit="' + p.id + '">Open</button></div>';
+    }).join('') + '</div>';
     return h;
+  }
+  var PTABS = [['basics', 'Basics'], ['help', 'Help and matching'], ['know', 'Good to know'], ['contacts', 'Contacts']];
+  function personScreen(note) {
+    var isNew = editId === 'new';
+    var p = isNew ? { first_name: '', last_name: '', help: [], pets: [], gender_pref: 'No preference', contacts: [] } : person(editId);
+    var they = p.is_self ? 'you' : (p.preferred || p.first_name || 'they');
+    if (isNew && ptab === 'contacts') ptab = 'basics';
+    var h = '<button class="back" data-v="people">&larr; Loved ones</button><div class="headrow"><div><h1>' + (isNew ? 'Add a loved one' : e(p.is_self ? 'About you' : nameOf(p))) + '</h1><p class="muted" style="margin:2px 0 0">Only you, our team and the Neighbor visiting can see this.</p></div></div>' + (note || '');
+    h += '<nav class="subtabs">' + PTABS.map(function (t) { var off = isNew && t[0] === 'contacts'; return '<button data-ptab="' + t[0] + '" class="' + (ptab === t[0] ? 'on' : '') + '"' + (off ? ' disabled title="Save first"' : '') + '>' + t[1] + (t[0] === 'contacts' && !isNew ? ' (' + p.contacts.length + ')' : '') + '</button>'; }).join('') + '</nav>';
+    var show = function (k) { return ptab === k ? '' : ' hidden'; };
+    h += '<form id="pf" novalidate class="card pane">' +
+      '<div data-pane="basics"' + show('basics') + '><div class="grid-2"><div class="field"><label for="p-first">First name</label><input id="p-first" value="' + e(p.first_name === 'Your loved one' ? '' : p.first_name) + '"></div><div class="field"><label for="p-last">Last name</label><input id="p-last" value="' + e(p.last_name) + '"></div></div>' +
+      '<div class="grid-2"><div class="field"><label for="p-pref">Name ' + (p.is_self ? 'you go' : 'they go') + ' by (optional)</label><input id="p-pref" value="' + e(p.preferred || '') + '" placeholder="Like Dot or Mr. Jim"></div><div class="field"><label for="p-phone">' + (p.is_self ? 'Your' : 'Their') + ' phone (optional)</label><input id="p-phone" type="tel" value="' + e(p.phone || '') + '"></div></div>' +
+      '<div class="grid-3"><div class="field" style="grid-column:span 1"><label for="p-street">Street address</label><input id="p-street" autocomplete="street-address" value="' + e(p.street || '') + '"></div><div class="field"><label for="p-city">City</label><input id="p-city" value="' + e(p.city || '') + '"></div><div class="field"><label for="p-zip">ZIP code</label><input id="p-zip" inputmode="numeric" maxlength="5" value="' + e(p.zip || '') + '"></div></div></div>' +
+      '<div data-pane="help"' + show('help') + '><div class="grid-2"><div><fieldset class="field ticks"><legend>What would help most? Pick any.</legend>' + checks('help', HELP, p.help) + '</fieldset>' +
+      '<p class="muted small" style="margin:6px 0 0">Neighbors offer friendly, everyday help. They never give personal care like bathing, dressing or help in the bathroom, never handle medicine, and never lift anyone.</p></div>' +
+      '<div><fieldset class="field ticks"><legend>Would ' + e(they) + ' like a Neighbor who is...</legend>' + radios('gender_pref', ['No preference', 'A woman', 'A man'], p.gender_pref || 'No preference') + '</fieldset>' +
+      '<fieldset class="field ticks"><legend>Any pets at home?</legend>' + checks('pets', PETS, p.pets) + '</fieldset>' +
+      '<div class="field"><label for="p-petnotes">About the pets (optional)</label><input id="p-petnotes" value="' + e(p.pet_notes || '') + '" placeholder="Like a friendly old beagle named Max"></div></div></div></div>' +
+      '<div data-pane="know"' + show('know') + '><div class="grid-3"><div class="field"><label for="p-int">What does ' + e(they) + ' enjoy?</label><textarea id="p-int" placeholder="Card games, gardening, old Westerns, the Cardinals, church, grandkids...">' + e(p.interests || '') + '</textarea></div>' +
+      '<div class="field"><label for="p-know">Anything a visitor should know?</label><textarea id="p-know" placeholder="Hard of hearing on the left side, uses a walker, memory is not what it was...">' + e(p.good_to_know || '') + '</textarea></div>' +
+      '<div class="field"><label for="p-arr">Getting there</label><textarea id="p-arr" placeholder="Park in the driveway, use the side door, knock loudly...">' + e(p.arrival || '') + '</textarea></div></div></div>' +
+      '<div class="savebar"' + (ptab === 'contacts' ? ' hidden' : '') + '><button class="btn btn-primary">Save</button><span id="pf-msg"></span>' + (!isNew && !p.is_self && data.people.length > 1 ? '<button type="button" class="linkbtn red" data-del="' + p.id + '" style="margin-left:auto">Remove ' + e(nameOf(p)) + '</button>' : '') + '</div></form>';
+    if (!isNew) {
+      h += '<div class="card pane" data-pane="contacts"' + show('contacts') + '><div class="headrow" style="margin:0 0 6px"><p class="muted" style="margin:0">Who should we call in an emergency (after 911), and who would like visit notes and updates?</p><button class="btn btn-primary btn-small" data-cedit="new">+ Add a contact</button></div>' +
+        (p.contacts.length ? '<div class="contacts">' + p.contacts.map(function (c) {
+          return '<div class="contact"><div><strong>' + e(c.name) + '</strong>' + (c.relation ? ' <span class="muted">(' + e(c.relation) + ')</span>' : '') + '<br><span class="muted small">' + e([c.phone, c.email].filter(Boolean).join(' · ')) + '</span><br>' +
+            (c.emergency ? '<span class="chip red">Emergency contact</span>' : '') + (c.gets_updates ? '<span class="chip">Gets visit updates</span>' : '') + '</div><div><button class="linkbtn" data-cedit="' + c.id + '">Edit</button></div></div>';
+        }).join('') + '</div>' : '<p><strong>No contacts yet.</strong> Please add at least one emergency contact.</p>') + '</div>';
+    }
+    return h;
+  }
+  function payScreen(note) {
+    var cd = data.family.card;
+    return '<div class="headrow"><div><h1>Payment</h1><p class="muted" style="margin:2px 0 0">We only charge after each visit is finished, for that visit, and email you a receipt.</p></div></div>' + (note || '') +
+      '<div class="grid-2" style="align-items:start"><div class="card"><div class="eyebrow">Card on file</div>' + (cd
+        ? '<p style="font-size:1.2rem;margin:6px 0 2px"><strong>' + e(cd.brand) + ' ending in ' + e(cd.last4) + '</strong></p><p class="muted" style="margin:0 0 14px">Expires ' + e(cd.exp) + '</p><button class="btn btn-ghost btn-small" data-v="card">Use a different card</button> <button class="linkbtn red" style="margin-left:14px" data-cardrm="1">Remove</button>'
+        : '<p style="margin:6px 0 14px">No card yet. <strong>You will not be charged now.</strong></p><button class="btn btn-primary btn-small" data-v="card">Add a card</button>') + '</div>' +
+      '<div class="card"><div class="eyebrow">How paying works</div><ul class="steps-mini"><li><b>1</b><span>Save a card so you are ready to book.</span></li><li><b>2</b><span>After each visit, we charge the card for that visit only.</span></li><li><b>3</b><span>You get an email receipt every time.</span></li></ul><p class="muted small" style="margin:0">Your card is kept safely by Stripe. We never see or store your full card number.</p></div></div>';
   }
   function meScreen() {
     var f = data.family;
-    return '<button class="back" data-v="home">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">Your details</h1><form id="mf" class="card" style="max-width:640px">' +
-      '<div class="grid-2"><div class="field"><label for="m-first">First name</label><input id="m-first" value="' + e(f.first_name) + '"></div><div class="field"><label for="m-last">Last name</label><input id="m-last" value="' + e(f.last_name) + '"></div></div>' +
-      '<div class="field"><label for="m-phone">Mobile phone</label><input id="m-phone" type="tel" value="' + e(f.phone || '') + '"></div>' +
-      '<p class="muted" style="font-size:.92rem">Your email is ' + e(f.email) + '. To change it, reply to any of our emails.</p><button class="btn btn-primary">Save</button><div id="mf-msg"></div></form>';
-  }
-  function personScreen() {
-    var p = editId === 'new' ? { first_name: '', last_name: '', help: [], pets: [], gender_pref: 'No preference', contacts: [] } : person(editId);
-    var they = p.is_self ? 'you' : (p.preferred || p.first_name || 'they');
-    var h = '<button class="back" data-v="home">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">' + (editId === 'new' ? 'Add a person' : 'About ' + e(p.is_self ? 'you' : (p.preferred || p.first_name))) + '</h1>' +
-      '<p class="muted">This helps us send the right Neighbor and helps them feel like a friend from the first visit. Only you, our team and the Neighbor visiting can see it.</p>' +
-      '<div><form id="pf" novalidate><div class="pgrid"><div class="card"><h2 style="margin-top:0">The basics</h2>' +
-      '<div class="grid-2"><div class="field"><label for="p-first">First name</label><input id="p-first" value="' + e(p.first_name === 'Your loved one' ? '' : p.first_name) + '"></div><div class="field"><label for="p-last">Last name</label><input id="p-last" value="' + e(p.last_name) + '"></div></div>' +
-      '<div class="grid-2"><div class="field"><label for="p-pref">Name ' + (p.is_self ? 'you go' : 'they go') + ' by (optional)</label><input id="p-pref" value="' + e(p.preferred || '') + '" placeholder="Like Dot or Mr. Jim"></div><div class="field"><label for="p-phone">' + (p.is_self ? 'Your' : 'Their') + ' phone (optional)</label><input id="p-phone" type="tel" value="' + e(p.phone || '') + '"></div></div>' +
-      '<div class="field"><label for="p-street">Street address where the visits will be</label><input id="p-street" autocomplete="street-address" value="' + e(p.street || '') + '"></div>' +
-      '<div class="grid-2"><div class="field"><label for="p-city">City</label><input id="p-city" value="' + e(p.city || '') + '"></div><div class="field"><label for="p-zip">ZIP code</label><input id="p-zip" inputmode="numeric" maxlength="5" value="' + e(p.zip || '') + '"></div></div></div>' +
-      '<div class="card"><h2 style="margin-top:0">What would help most?</h2><fieldset class="field ticks"><legend>Pick any.</legend>' + checks('help', HELP, p.help) + '</fieldset>' +
-      '<p class="muted" style="font-size:.92rem;margin:6px 0 0">Neighbors offer friendly, everyday help. They never give personal care like bathing, dressing or help in the bathroom, never handle medicine, and never lift anyone.</p></div>' +
-      '<div class="card"><h2 style="margin-top:0">Matching</h2><fieldset class="field ticks"><legend>Would ' + e(they) + ' like a Neighbor who is...</legend>' + radios('gender_pref', ['No preference', 'A woman', 'A man'], p.gender_pref || 'No preference') + '</fieldset>' +
-      '<fieldset class="field ticks"><legend>Any pets at home?</legend>' + checks('pets', PETS, p.pets) + '</fieldset>' +
-      '<div class="field"><label for="p-petnotes">About the pets (optional)</label><input id="p-petnotes" value="' + e(p.pet_notes || '') + '" placeholder="Like a friendly old beagle named Max"></div>' +
-      '<div class="field"><label for="p-int">What does ' + e(they) + ' enjoy?</label><textarea id="p-int" placeholder="Card games, gardening, old Westerns, the Cardinals, church, talking about grandkids...">' + e(p.interests || '') + '</textarea></div></div>' +
-      '<div class="card"><h2 style="margin-top:0">Good to know</h2><div class="field"><label for="p-know">Anything a visitor should know?</label><textarea id="p-know" placeholder="Hard of hearing on the left side, uses a walker, likes things done a certain way, memory is not what it was...">' + e(p.good_to_know || '') + '</textarea></div>' +
-      '<div class="field"><label for="p-arr">Getting there</label><textarea id="p-arr" placeholder="Park in the driveway, use the side door, knock loudly...">' + e(p.arrival || '') + '</textarea></div></div>' +
-      '</div><div class="sticky-save"><button class="btn btn-primary" style="width:100%">Save</button><div id="pf-msg"></div></div></form><div class="pgrid" style="margin-top:8px">';
-    if (editId === 'new') h += '<div class="card"><h2 style="margin-top:0">Contacts</h2><p class="muted" style="margin:0">Save this person first, then add who to call in an emergency and who gets visit updates.</p></div>';
-    if (editId !== 'new') {
-      h += '<div class="card"><h2 style="margin-top:0">Contacts</h2><p class="muted" style="margin-top:0">Who should we call in an emergency (after 911), and who would like visit notes and updates?</p>' +
-        (p.contacts.length ? p.contacts.map(function (c) {
-          return '<div class="contact"><div><strong>' + e(c.name) + '</strong>' + (c.relation ? ' <span class="muted">(' + e(c.relation) + ')</span>' : '') + '<br><span class="muted" style="font-size:.92rem">' + e([c.phone, c.email].filter(Boolean).join(' · ')) + '</span><br>' +
-            (c.emergency ? '<span class="chip red">Emergency contact</span>' : '') + (c.gets_updates ? '<span class="chip">Gets visit updates</span>' : '') + '</div><div><button class="linkbtn" data-cedit="' + c.id + '">Edit</button></div></div>';
-        }).join('') : '<p><strong>No contacts yet.</strong> Please add at least one emergency contact.</p>') +
-        '<button class="btn btn-ghost btn-small" data-cedit="new">Add a contact</button></div>';
-      if (!p.is_self && data.people.length > 1) h += '<p style="text-align:center"><button class="linkbtn red" data-del="' + p.id + '">Remove ' + e(nameOf(p)) + '</button></p>';
-    }
-    return h + '</div></div>';
+    return '<div class="headrow"><div><h1>Account</h1><p class="muted" style="margin:2px 0 0">Your own details, for us to reach you.</p></div></div><form id="mf" class="card">' +
+      '<div class="grid-3"><div class="field"><label for="m-first">First name</label><input id="m-first" value="' + e(f.first_name) + '"></div><div class="field"><label for="m-last">Last name</label><input id="m-last" value="' + e(f.last_name) + '"></div><div class="field"><label for="m-phone">Mobile phone</label><input id="m-phone" type="tel" value="' + e(f.phone || '') + '"></div></div>' +
+      '<p class="muted small">Your email is <strong>' + e(f.email) + '</strong>. To change it, reply to any of our emails.</p><div class="savebar"><button class="btn btn-primary">Save</button><span id="mf-msg"></span></div></form>';
   }
   function cardScreen() {
-    return '<button class="back" data-v="home">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">Add a card</h1>' +
+    return '<button class="back" data-v="pay">&larr; Payment</button><div class="headrow"><h1>Add a card</h1></div>' +
       '<div class="cols"><div class="card"><div id="pay-el" style="min-height:120px"><p class="muted">Loading the secure card form...</p></div>' +
       '<button class="btn btn-primary" id="card-save" style="width:100%;margin-top:16px" disabled>Save card</button><div id="card-msg"></div></div>' +
       '<div class="card"><h2 style="margin-top:0">You will not be charged now</h2><ul class="steps-mini"><li><b>1</b><span>Save a card so you are ready to book.</span></li><li><b>2</b><span>After each visit is finished, we charge this card for that visit only.</span></li><li><b>3</b><span>You get an email receipt every time. Change or remove the card any time.</span></li></ul>' +
@@ -213,12 +266,12 @@
       if (res.error) { unbusy(btn); return say('card-msg', res.error.message || 'Your card was not saved. Please try again.'); }
       var d = await call('card_done', { setup_intent: res.setupIntent && res.setupIntent.id });
       unbusy(btn);
-      if (!got(d, 'Card saved. You will not be charged until after a visit.', 'home')) say('card-msg', (d && d.error) || 'Your card was not saved. Please try again.');
+      if (!got(d, 'Card saved. You will not be charged until after a visit.', 'pay')) say('card-msg', (d && d.error) || 'Your card was not saved. Please try again.');
     };
   }
   function contactScreen() {
     var p = person(contactFor), c = contactId === 'new' ? { emergency: !p.contacts.some(function (x) { return x.emergency; }), gets_updates: true } : p.contacts.filter(function (x) { return x.id === contactId; })[0];
-    return '<button class="back" data-v="person">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">' + (contactId === 'new' ? 'Add a contact' : 'Edit contact') + '</h1><form id="cf" class="card" novalidate>' +
+    return '<button class="back" data-v="person">&larr; ' + e(nameOf(p)) + '</button><div class="headrow"><h1>' + (contactId === 'new' ? 'Add a contact' : 'Edit contact') + '</h1></div><form id="cf" class="card" novalidate style="max-width:820px">' +
       '<div class="grid-2"><div class="field"><label for="c-name">Name</label><input id="c-name" value="' + e(c.name || '') + '"></div><div class="field"><label for="c-rel">How they are related</label><input id="c-rel" value="' + e(c.relation || '') + '" placeholder="Daughter, neighbor, friend..."></div></div>' +
       '<div class="grid-2"><div class="field"><label for="c-phone">Phone</label><input id="c-phone" type="tel" value="' + e(c.phone || '') + '"></div><div class="field"><label for="c-email">Email (optional)</label><input id="c-email" type="email" value="' + e(c.email || '') + '"></div></div>' +
       '<label class="row"><input type="checkbox" id="c-em"' + (c.emergency ? ' checked' : '') + '> <span><strong>Emergency contact.</strong> If something happens, the Neighbor calls 911 first, then us, and we call this person.</span></label>' +
@@ -228,8 +281,8 @@
 
   function render(note) {
     if (!data) { app.innerHTML = startScreen(note); prefill(); return toggleNames(); }
-    var v = { home: homeScreen, me: meScreen, person: personScreen, contact: contactScreen, card: cardScreen }[view] || homeScreen;
-    app.innerHTML = v(note);
+    var v = { home: homeScreen, people: peopleScreen, me: meScreen, person: personScreen, contact: contactScreen, pay: payScreen, card: cardScreen }[view] || homeScreen;
+    app.innerHTML = tabbar() + '<div class="tabbody">' + v(note) + '</div>';
     window.scrollTo(0, 0);
     if (v === cardScreen) mountCard();
   }
@@ -267,25 +320,35 @@
 
   app.addEventListener('change', function (ev) { if (ev.target.name === 'is_for') toggleNames(); });
   app.addEventListener('click', async function (ev) {
+    var pt = ev.target.closest('[data-ptab]');
+    if (pt) {
+      ptab = pt.dataset.ptab;
+      app.querySelectorAll('[data-ptab]').forEach(function (b) { b.classList.toggle('on', b.dataset.ptab === ptab); });
+      app.querySelectorAll('[data-pane]').forEach(function (d) { d.hidden = d.dataset.pane !== ptab; });
+      var sb = app.querySelector('.savebar'); if (sb) sb.hidden = ptab === 'contacts';
+      var pf = document.getElementById('pf'); if (pf) pf.hidden = ptab === 'contacts';
+      return;
+    }
     var t = ev.target.closest('[data-v],[data-edit],[data-cedit],[data-del],[data-cdel],[data-cardrm]'); if (!t) return;
     if (t.dataset.cardrm) {
       if (t.dataset.sure !== '1') { t.dataset.sure = '1'; t.textContent = 'Click again to remove this card'; return; }
       busy(t, 'Removing...'); var rr = await call('card_remove');
-      if (!got(rr, 'Card removed.', 'home')) { unbusy(t); alertMsg(rr); }
+      if (!got(rr, 'Card removed.', 'pay')) { unbusy(t); alertMsg(rr); }
       return;
     }
     if (t.dataset.v) { view = t.dataset.v; return render(); }
-    if (t.dataset.edit) { editId = t.dataset.edit; view = 'person'; return render(); }
+    if (t.dataset.edit) { editId = t.dataset.edit; view = 'person'; ptab = 'basics'; return render(); }
     if (t.dataset.cedit) { contactFor = editId; contactId = t.dataset.cedit; view = 'contact'; return render(); }
     if (t.dataset.del) {
       if (t.dataset.sure !== '1') { t.dataset.sure = '1'; t.textContent = 'Click again to remove them and their contacts'; return; }
       busy(t, 'Removing...'); var r = await call('delete_person', { id: t.dataset.del });
-      if (!got(r, 'Removed.', 'home')) { unbusy(t); alertMsg(r); }
+      if (!got(r, 'Removed.', 'people')) { unbusy(t); alertMsg(r); }
       return;
     }
     if (t.dataset.cdel) {
       if (t.dataset.sure !== '1') { t.dataset.sure = '1'; t.textContent = 'Click again to remove'; return; }
       busy(t, 'Removing...'); var r2 = await call('delete_contact', { id: t.dataset.cdel });
+      ptab = 'contacts';
       if (!got(r2, 'Contact removed.', 'person')) { unbusy(t); say('cf-msg', (r2 && r2.error) || 'That did not work.'); }
     }
   });
@@ -313,7 +376,7 @@
     }
     if (f.id === 'mf') {
       busy(btn, 'Saving...'); var r1 = await call('save_family', { first_name: g('m-first'), last_name: g('m-last'), phone: g('m-phone') }); unbusy(btn);
-      if (!got(r1, 'Saved.', 'home')) say('mf-msg', (r1 && r1.error) || 'That did not save. Please try again.');
+      if (!got(r1, 'Saved.', 'me')) say('mf-msg', (r1 && r1.error) || 'That did not save. Please try again.');
       return;
     }
     if (f.id === 'pf') {
@@ -325,7 +388,7 @@
       if (!r3 || !r3.ok) return say('pf-msg', (r3 && r3.error) || 'That did not save. Please try again.');
       data = r3;
       if (editId === 'new') { editId = data.people[data.people.length - 1].id; }
-      view = 'person'; render('<div class="msg ok" style="margin:0 0 16px">Saved.' + (person(editId).contacts.length ? '' : ' Next, add an emergency contact at the bottom of this page.') + '</div>');
+      view = 'person'; render('<div class="msg ok" style="margin:0 0 16px">Saved.' + (person(editId).contacts.length ? '' : ' Next, open the Contacts tab and add an emergency contact.') + '</div>');
       return;
     }
     if (f.id === 'cf') {
@@ -335,6 +398,7 @@
       if (!cb.phone && !cb.email) return say('cf-msg', 'Please add a phone number or email.');
       if (cb.emergency && !cb.phone) return say('cf-msg', 'An emergency contact needs a phone number.');
       busy(btn, 'Saving...'); var r4 = await call('save_contact', cb); unbusy(btn);
+      ptab = 'contacts';
       if (!got(r4, 'Contact saved.', 'person')) say('cf-msg', (r4 && r4.error) || 'That did not save. Please try again.');
     }
   });
