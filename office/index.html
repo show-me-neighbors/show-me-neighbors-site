@@ -208,7 +208,7 @@
   }
   function mkHead() {
     return nav() + '<h1 style="font-size:1.9rem;margin-bottom:0">Marketing</h1><p class="muted" style="margin:4px 0 0">Ready-to-post ads. Each one has its own link, so you can see which posts bring people in. Copy the whole post; the link is already in it.</p>' +
-      '<div class="bar tabs" style="margin-top:16px"><button data-mk="families" class="' + (mkTab === 'families' ? 'on' : '') + '">For families</button><button data-mk="neighbors" class="' + (mkTab === 'neighbors' ? 'on' : '') + '">Recruiting Neighbors</button></div>';
+      '<div class="bar tabs" style="margin-top:16px"><button data-mk="families" class="' + (mkTab === 'families' ? 'on' : '') + '">For families</button><button data-mk="neighbors" class="' + (mkTab === 'neighbors' ? 'on' : '') + '">Recruiting Neighbors</button><button data-mk="year" class="' + (mkTab === 'year' ? 'on' : '') + '">Year plan</button></div>';
   }
   function wireTabs() { app.querySelectorAll('[data-mk]').forEach(function (b) { b.onclick = function () { mkTab = b.dataset.mk; loadMarketing(); }; }); }
   function sourceTable(rows, label, cols) {
@@ -222,12 +222,53 @@
   async function loadMarketing() {
     if (mkTab === 'families') {
       var fr = await sb.from('families').select('source, card_last4');
-      var lab = {}; FAM_POSTS.forEach(function (p) { lab[p.code] = p.where; });
+      var lab = {}; FAM_POSTS.forEach(function (p) { lab[p.code] = p.where; }); lab['fam-fb-year'] = 'Year plan posts (Facebook)'; lab['ig-bio'] = 'Instagram bio link'; lab['fb-bio'] = 'Facebook page link';
       app.innerHTML = mkHead() + sourceTable(fr.error ? [] : fr.data, lab, [['Made an account', function () { return true; }], ['Added a card', function (f) { return !!f.card_last4; }]]) +
         '<h2 style="font-size:1.25rem;margin:26px 0 10px">Posts to copy</h2><p class="muted" style="margin:0 0 12px">These send families to the home page, where they check their ZIP and make a free account.</p>' + postCards(FAM_POSTS, SITE_HOME);
       wireTabs(); wireCopy(FAM_POSTS, SITE_HOME); return;
     }
+    if (mkTab === 'year') return loadYear();
     return loadRecruiting();
+  }
+  // Year plan: a year of Facebook and Instagram posts (office/social-calendar.json), 3 a week, each with its own picture
+  var YEAR = null, yrMonth = null, yrWho = 'all';
+  var YR_LINK = { family: 'showmeneighbors.com/?from=fam-fb-year', neighbor: 'showmeneighbors.com/apply/?from=fb-year' };
+  function yrText(p, where) {
+    var cta = where === 'ig' ? 'Tap the link in our bio to ' + (p.audience === 'family' ? 'make a free family account.' : 'apply.') : 'https://' + YR_LINK[p.audience];
+    return p.text.replace('{LINK}', cta) + (p.tags ? '\n\n' + p.tags : '');
+  }
+  function yrDate(d) { return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); }
+  async function loadYear() {
+    if (!YEAR) {
+      app.innerHTML = mkHead() + '<p class="muted">Loading the year plan...</p>'; wireTabs();
+      try { YEAR = await (await fetch('/office/social-calendar.json?v=' + Date.now())).json(); } catch (x) { YEAR = null; }
+      if (!YEAR) { app.innerHTML = mkHead() + '<div class="card">The year plan could not load. Refresh to try again.</div>'; wireTabs(); return; }
+    }
+    var today = new Date().toISOString().slice(0, 10), months = [];
+    YEAR.posts.forEach(function (p) { var m = p.date.slice(0, 7); if (months.indexOf(m) < 0) months.push(m); });
+    if (!yrMonth) { yrMonth = months.filter(function (m) { return m >= today.slice(0, 7); })[0] || months[0]; }
+    var list = YEAR.posts.filter(function (p) { return p.date.slice(0, 7) === yrMonth && (yrWho === 'all' || p.audience === yrWho); });
+    var counts = { family: 0, neighbor: 0 }; YEAR.posts.forEach(function (p) { counts[p.audience]++; });
+    var mName = function (m) { return new Date(m + '-15T12:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); };
+    var h = mkHead() +
+      '<div class="card" style="margin-top:16px"><h3 style="margin:0 0 6px;font-size:1.1rem">' + YEAR.posts.length + ' posts, 3 a week, ' + yrDate(YEAR.posts[0].date) + ' to ' + yrDate(YEAR.posts[YEAR.posts.length - 1].date) + '</h3>' +
+      '<p class="muted small" style="margin:0">' + counts.family + ' for families, ' + counts.neighbor + ' to recruit Neighbors. Mondays go to families, Wednesdays to Neighbors, and Fridays to Neighbors through the winter, then take turns. ' + e(YEAR.note || '') + '</p></div>' +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0"><select id="yrM" style="min-width:0">' + months.map(function (m) { return '<option value="' + m + '"' + (m === yrMonth ? ' selected' : '') + '>' + mName(m) + '</option>'; }).join('') + '</select>' +
+      '<select id="yrW"><option value="all">Everyone</option><option value="family"' + (yrWho === 'family' ? ' selected' : '') + '>For families</option><option value="neighbor"' + (yrWho === 'neighbor' ? ' selected' : '') + '>Recruiting Neighbors</option></select></div>' +
+      list.map(function (p) {
+        var i = YEAR.posts.indexOf(p), past = p.date < today;
+        return '<div class="card rec" style="margin-bottom:14px' + (past ? ';opacity:.7' : '') + '"><div style="display:flex;gap:16px;flex-wrap:wrap">' +
+          '<a href="/assets/social/' + p.id + '.jpg" target="_blank" style="flex:0 0 150px"><img src="/assets/social/' + p.id + '.jpg" alt="Picture for this post" loading="lazy" style="width:150px;border-radius:10px;display:block"></a>' +
+          '<div style="flex:1 1 260px;min-width:0"><div class="muted small">' + yrDate(p.date) + ' &middot; ' + (p.audience === 'family' ? 'For families' : 'Recruiting Neighbors') + (p.status ? ' &middot; <b>' + e(p.status) + '</b>' : '') + '</div>' +
+          '<h3 style="margin:2px 0 8px;font-size:1.1rem">' + e(p.theme) + '</h3>' +
+          '<pre style="white-space:pre-wrap;font:inherit;font-size:.92rem;background:#f5f8fc;border:1px solid var(--line);border-radius:12px;padding:14px;margin:0;max-height:240px;overflow:auto">' + e(yrText(p, 'fb')) + '</pre>' +
+          '<div class="acts"><button class="go" data-yfb="' + i + '">Copy for Facebook</button><button data-yig="' + i + '">Copy for Instagram</button><a class="small" href="/assets/social/' + p.id + '.jpg" target="_blank" style="align-self:center">Open picture</a></div></div></div></div>';
+      }).join('');
+    app.innerHTML = h; wireTabs();
+    document.getElementById('yrM').onchange = function () { yrMonth = this.value; loadYear(); };
+    document.getElementById('yrW').onchange = function () { yrWho = this.value; loadYear(); };
+    app.querySelectorAll('[data-yfb]').forEach(function (b) { b.onclick = function () { copyText(yrText(YEAR.posts[+b.dataset.yfb], 'fb'), b); }; });
+    app.querySelectorAll('[data-yig]').forEach(function (b) { b.onclick = function () { copyText(yrText(YEAR.posts[+b.dataset.yig], 'ig'), b); }; });
   }
   async function loadRecruiting() {
     var r = await sb.from('neighbors').select('source, status');
@@ -235,7 +276,7 @@
     rows.forEach(function (n) { var k = n.source || '(no post link)'; by[k] = by[k] || { all: 0, passed: 0, approved: 0 }; by[k].all++;
       if (['Next steps', 'Waiting on checks', 'Ready for approval', 'Approved', 'Paused'].indexOf(n.status) >= 0) by[k].passed++;
       if (n.status === 'Approved') by[k].approved++; });
-    var label = {}; POSTS.forEach(function (p) { label[p.code] = p.where; });
+    var label = {}; POSTS.forEach(function (p) { label[p.code] = p.where; }); label['fb-year'] = 'Year plan posts (Facebook)'; label['ig-bio'] = 'Instagram bio link'; label['fb-bio'] = 'Facebook page link';
     var keys = Object.keys(by).sort(function (a, b) { return by[b].all - by[a].all; });
     var h = mkHead() +
       '<h2 style="font-size:1.25rem;margin:22px 0 10px">Which posts are working</h2>' +
