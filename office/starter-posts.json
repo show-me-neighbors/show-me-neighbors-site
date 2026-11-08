@@ -1,0 +1,93 @@
+{
+ "note": "Starter posts to fill the Page before the scheduled posts begin. Posted a few hours apart, once approved.",
+ "posts": [
+  {
+   "id": "starter-1",
+   "theme": "Why we started (draft, edit in your words)",
+   "format": "card",
+   "headline": "Why we started Show-Me Neighbors",
+   "text": "Hello, Missouri! 👋\n\nToo many older adults in our towns go days without a visitor. Their grown kids work all day, or live hours away, and worry about Mom or Dad more than they say out loud.\n\nShow-Me Neighbors is our answer: kind, background-checked people from right here who stop by for company, a ride, an errand or a little help around the house.\n\nWe are just getting started in Springfield, Branson and Table Rock Lake, and St. Charles County. Thank you for being here at the very beginning.\n\nSamantha, founder\n\n#SpringfieldMO #BransonMO #StCharlesMO"
+  },
+  {
+   "id": "starter-2",
+   "theme": "Families video (pin this one)",
+   "format": "video",
+   "video": "how-it-works-families",
+   "text": "Ever wonder how Show-Me Neighbors actually works? Here it is, start to finish, right on a phone.\n\nMake a free account, tell us about your mom or dad, and book a visit for company, rides or errands. You see who is coming before they arrive, and you get a short note after every visit.\n\n$34 an hour. No contracts, ever.\n\nMake your free family account here:\nhttps://showmeneighbors.com/?from=fb-starter\n\n#SpringfieldMO #BransonMO #StCharlesMO"
+  },
+  {
+   "id": "starter-3",
+   "theme": "How we choose every Neighbor",
+   "format": "checklist",
+   "headline": "How we choose every Neighbor",
+   "items": [
+    "Application and screening questions",
+    "A live one-on-one video interview",
+    "A 50-state criminal background check",
+    "Driving record check before any rides",
+    "Onboarding course and quiz",
+    "A note to the family after every visit"
+   ],
+   "text": "Letting someone into Mom's home is a big deal. We know, because we would feel the same way.\n\nThat is why every Neighbor goes through the same steps before their first visit, with no shortcuts. And after every visit, the family gets a short note about how it went.\n\nQuestions about how we choose Neighbors? Ask us in the comments.\n\n#SpringfieldMO #BransonMO #StCharlesMO",
+   "chip": "About us"
+  },
+  {
+   "id": "starter-4",
+   "theme": "What a Neighbor does",
+   "format": "tips",
+   "headline": "What a Neighbor does (and never does)",
+   "slides": [
+    {
+     "title": "Good company",
+     "body": "Conversation, cards, walks, coffee, hobbies and old photos."
+    },
+    {
+     "title": "Rides and errands",
+     "body": "Doctor visits, groceries, the pharmacy, the salon, church and lunch out."
+    },
+    {
+     "title": "Light help at home",
+     "body": "Simple meals together, tidying, laundry, plants and the TV remote."
+    },
+    {
+     "title": "Never personal or medical care",
+     "body": "No bathing, dressing, lifting or medication. If that help is needed, we point families to local options."
+    }
+   ],
+   "text": "What exactly does a Neighbor do? Swipe through for the short version. 👉\n\nThink of a Neighbor as a friendly, dependable extra pair of hands, and good company too. They are not nurses or aides, and they never give personal or medical care.\n\nSave this for later, or share it with a sibling who has been wondering.\n\n#SpringfieldMO #BransonMO #StCharlesMO",
+   "chip": "About us",
+   "swipe": "Swipe for the short version"
+  },
+  {
+   "id": "starter-5",
+   "theme": "Where we are",
+   "format": "checklist",
+   "headline": "Where you will find our Neighbors",
+   "items": [
+    "Springfield, Nixa, Ozark and Republic",
+    "Willard, Strafford and Rogersville",
+    "Branson, Hollister and Forsyth",
+    "Branson West and Kimberling City",
+    "Reeds Spring and Blue Eye",
+    "St. Charles, St. Peters and O'Fallon",
+    "Wentzville, Lake St. Louis, Cottleville"
+   ],
+   "text": "We are starting close to home in three parts of Missouri: the Springfield area, Branson and Table Rock Lake, and St. Charles County.\n\nEvery Neighbor lives nearby, so they know the roads, the stores and the church parking lots.\n\nDon't see your town? Tell us in the comments. We are growing town by town, and it helps us know where to go next.\n\n#SpringfieldMO #BransonMO #StCharlesMO",
+   "chip": "About us"
+  },
+  {
+   "id": "starter-6",
+   "theme": "Neighbor video",
+   "format": "video",
+   "video": "become-a-neighbor",
+   "text": "We are now welcoming our very first Neighbors! 🧡\n\nHere is a real look at how it works, from applying to getting paid. Pick the hours you are free. Get visit offers near you, with the pay shown up front. Accept the ones that fit. Check in, enjoy the visit, leave a short note, and you are paid after every visit.\n\n$18 an hour weekdays, $21 evenings and weekends.\n\nApply in about 5 minutes:\nhttps://showmeneighbors.com/apply/?from=fb-starter\n\n#SpringfieldMO #BransonMO #StCharlesMO"
+  },
+  {
+   "id": "starter-7",
+   "theme": "Throwback: your street",
+   "format": "throwback",
+   "headline": "What was the name of the street you grew up on?",
+   "text": "Let's get to know each other! 😊\n\nWhat was the name of the street you grew up on? Bonus points if you tell us what town it was in, and who lived next door.\n\nSome of the best memories start with a front porch and a neighbor who waved.\n\n#Throwback #Missouri"
+  }
+ ]
+}
