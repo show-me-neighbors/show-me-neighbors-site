@@ -62,6 +62,13 @@
   .savebar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; border-top: 1px solid var(--line); margin-top: 18px; padding-top: 16px; }
   .savebar .msg { margin: 0; }
   .contacts { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .days { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; margin-top: 8px; }
+  .daybtn, .timebtn { font: inherit; border: 2px solid var(--line); background: #fff; border-radius: 12px; cursor: pointer; padding: 8px 6px; }
+  .daybtn b, .daybtn span { display: block; } .daybtn span { font-size: .85rem; color: var(--ink-soft); }
+  .daybtn.on, .timebtn.on { border-color: var(--brick); background: #e3edf6; }
+  .times { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin-top: 8px; }
+  .timebtn { font-weight: 800; }
+  .sumbox { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
   .tablewrap { overflow-x: auto; }
   .rtable, .itable { width: 100%; border-collapse: collapse; font-size: .95rem; }
   .rtable th, .rtable td, .itable th, .itable td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
@@ -174,14 +181,14 @@
   }
 
   // ---------- signed in: top tabs ----------
-  var TABS = [['home', 'Home'], ['people', 'Loved ones'], ['pay', 'Payment'], ['me', 'Account']];
-  var TAB_OF = { home: 'home', people: 'people', person: 'people', contact: 'people', pay: 'pay', card: 'pay', receipt: 'pay', statement: 'pay', me: 'me' };
+  var TABS = [['home', 'Home'], ['visits', 'Visits'], ['people', 'Loved ones'], ['pay', 'Payment'], ['me', 'Account']];
+  var TAB_OF = { home: 'home', visits: 'visits', book: 'visits', people: 'people', person: 'people', contact: 'people', pay: 'pay', card: 'pay', receipt: 'pay', statement: 'pay', me: 'me' };
   var ptab = 'basics';
   function tabbar() {
     return '<nav class="tabbar" aria-label="Your account">' + TABS.map(function (t) { return '<button data-v="' + t[0] + '" class="' + (TAB_OF[view] === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</nav>';
   }
   function bookBtn() {
-    return data.bookings_open ? '<button class="btn btn-primary" data-v="people">Book a visit</button>' : '<span class="soon"><strong>Booking opens soon.</strong> We will email you the day it opens.</span>';
+    return data.bookings_open ? '<button class="btn btn-primary" data-v="book">Book a visit</button>' : '<span class="soon"><strong>Booking opens soon.</strong> We will email you the day it opens.</span>';
   }
   function homeScreen(note) {
     var f = data.family, cd = f.card;
@@ -332,6 +339,90 @@
       '<div class="grid-3"><div class="field"><label for="m-first">First name</label><input id="m-first" value="' + e(f.first_name) + '"></div><div class="field"><label for="m-last">Last name</label><input id="m-last" value="' + e(f.last_name) + '"></div><div class="field"><label for="m-phone">Mobile phone</label><input id="m-phone" type="tel" value="' + e(f.phone || '') + '"></div></div>' +
       '<p class="muted small">Your email is <strong>' + e(f.email) + '</strong>. To change it, reply to any of our emails.</p><div class="savebar"><button class="btn btn-primary">Save</button><span id="mf-msg"></span></div></form>';
   }
+  // ---------- visits ----------
+  async function callV(action, body) {
+    try {
+      var r = await sb.functions.invoke('visits', { body: Object.assign({ action: action }, body || {}) });
+      if (r.error) { var j = null; try { j = await r.error.context.json(); } catch (x) {} return j || { ok: false, error: 'We could not reach Show-Me Neighbors. Please try again.' }; }
+      return r.data;
+    } catch (x) { return { ok: false, error: 'We could not reach Show-Me Neighbors. Please try again.' }; }
+  }
+  var visits = null, bk = null;
+  function vWhen(v) { return dLong(v.start_at) + ', ' + tShort(v.start_at) + ' to ' + tShort(v.end_at); }
+  var VSTAT = { 'Finding a Neighbor': ['Finding your Neighbor', ''], 'Confirmed': ['Confirmed', 'ok'], 'In progress': ['Happening now', 'ok'], 'Done': ['Done', ''], 'Cancelled': ['Cancelled', 'red'], 'Not filled': ['No Neighbor found, not charged', 'red'] };
+  function visitsScreen(note) {
+    var h = '<div class="headrow"><div><h1>Visits</h1><p class="muted" style="margin:2px 0 0">Your upcoming and past visits.</p></div>' + bookBtn() + '</div>' + (note || '') + '<div id="vlist"><p class="muted">Loading your visits...</p></div>';
+    return h;
+  }
+  async function loadVisits() { var r = await callV('my_visits'); visits = r && r.ok ? r.visits : null; drawVisits(r && !r.ok ? r.error : ''); }
+  function drawVisits(err) {
+    var box = document.getElementById('vlist'); if (!box) return;
+    if (!visits) { box.innerHTML = '<div class="msg err">' + e(err || 'We could not load your visits.') + '</div>'; return; }
+    if (!visits.length) { box.innerHTML = '<div class="card"><p style="margin:0">No visits yet.' + (data.bookings_open ? ' Book your first one with the button above.' : ' Booking opens soon, and we will email you the day it does.') + '</p></div>'; return; }
+    var nowIso = new Date().toISOString(), up = visits.filter(function (v) { return v.end_at > nowIso && ['Finding a Neighbor', 'Confirmed', 'In progress'].indexOf(v.status) >= 0; }).reverse(), past = visits.filter(function (v) { return up.indexOf(v) < 0; });
+    var card = function (v) {
+      var st = VSTAT[v.status] || [v.status, ''];
+      return '<div class="card tile"><div class="eyebrow">' + e(v.loved_one) + '</div><strong style="font-size:1.1rem">' + e(vWhen(v)) + '</strong><div><span class="chip ' + st[1] + '">' + e(st[0]) + '</span></div>' +
+        (v.neighbor ? '<p class="small" style="margin:8px 0 0"><strong>Your Neighbor: ' + e(v.neighbor.name) + '</strong>' + (v.neighbor.bio ? '<br><span class="muted">' + e(v.neighbor.bio) + '</span>' : '') + '</p>' : (v.status === 'Finding a Neighbor' ? '<p class="small muted" style="margin:8px 0 0">We have asked the Neighbors who fit. We will email you as soon as one says yes.</p>' : '')) +
+        (v.help && v.help.length ? '<p class="small" style="margin:6px 0 0">Help: ' + e(v.help.join(', ')) + '</p>' : '') +
+        (v.visit_note ? '<p class="small" style="margin:6px 0 0"><strong>Note from your Neighbor:</strong> ' + e(v.visit_note) + '</p>' : '') +
+        (['Finding a Neighbor', 'Confirmed'].indexOf(v.status) >= 0 ? '<button class="linkbtn red" style="margin-top:8px;align-self:flex-start" data-vcancel="' + v.id + '">Cancel this visit</button>' : '') + '</div>';
+    };
+    box.innerHTML = '<h2 class="section-h">Coming up</h2>' + (up.length ? '<div class="tiles">' + up.map(card).join('') + '</div>' : '<p class="muted">Nothing booked right now.</p>') +
+      (past.length ? '<h2 class="section-h" style="margin-top:26px">Past and cancelled</h2><div class="tiles">' + past.map(card).join('') + '</div>' : '');
+  }
+  // Booking: who, what, how long, which day, then only the times a Neighbor is free
+  function bookStart() {
+    var p = data.people[0] || {};
+    bk = { lo: p.id || '', help: (p.help || []).slice(), hours: 2, date: '', times: null, start: '', notes: '' };
+  }
+  function nextDays() {
+    var out = [], d = new Date(Date.now() + 24 * 3600e3);
+    for (var i = 0; i < 21; i++) { var x = new Date(d.getTime() + i * 86400e3); out.push(x.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' })); }
+    return out;
+  }
+  function dayLabel(ymd) { var d = new Date(ymd + 'T12:00:00'); return '<b>' + d.toLocaleDateString('en-US', { weekday: 'short' }) + '</b><span>' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + '</span>'; }
+  function bookScreen(note) {
+    if (!bk) bookStart();
+    if (!data.bookings_open) return '<div class="headrow"><h1>Book a visit</h1></div><div class="card"><p style="margin:0"><strong>Booking opens soon.</strong> We will email you the day it opens.</p></div>';
+    var p = person(bk.lo) || {};
+    var h = '<button class="back" data-v="visits">&larr; Visits</button><div class="headrow"><div><h1>Book a visit</h1><p class="muted" style="margin:2px 0 0">You only see times when a Neighbor who fits is free. You are not charged until after the visit.</p></div></div>' + (note || '');
+    if (!data.family.card) h += '<div class="msg info">Please <button class="linkbtn" data-v="card">add a card</button> before booking. You will not be charged until after the visit.</div>';
+    h += '<div class="grid-2" style="align-items:start"><div class="card"><div class="field"><label for="bk-lo">Who is the visit for?</label><select id="bk-lo">' + data.people.map(function (x) { return '<option value="' + x.id + '"' + (x.id === bk.lo ? ' selected' : '') + '>' + e(nameOf(x)) + (x.area === 'Not yet served' ? ' (not in our area yet)' : '') + '</option>'; }).join('') + '</select></div>' +
+      '<fieldset class="field ticks"><legend>What would help?</legend>' + checks('bk-help', HELP, bk.help) + '</fieldset>' +
+      '<fieldset class="field ticks"><legend>How long?</legend><div>' + [1, 2, 3, 4].map(function (n) { return '<label class="tick"><input type="radio" name="bk-hours" value="' + n + '"' + (bk.hours === n ? ' checked' : '') + '><span>' + n + ' hour' + (n > 1 ? 's' : '') + '</span></label>'; }).join('') + '</div></fieldset>' +
+      '<div class="field"><label for="bk-notes">Anything the Neighbor should know for this visit? (optional)</label><textarea id="bk-notes" placeholder="Pick up a prescription at Walgreens, then lunch at Lambert\'s...">' + e(bk.notes) + '</textarea></div></div>' +
+      '<div class="card"><div class="eyebrow">Pick a day</div><div class="days">' + nextDays().map(function (d) { return '<button class="daybtn' + (bk.date === d ? ' on' : '') + '" data-day="' + d + '">' + dayLabel(d) + '</button>'; }).join('') + '</div>' +
+      '<div class="eyebrow" style="margin-top:16px">Pick a time</div><div id="bk-times">' + timesHtml() + '</div><div id="bk-sum"></div></div></div>';
+    return h;
+  }
+  function timesHtml() {
+    if (!bk.date) return '<p class="muted small">Pick a day to see open times.</p>';
+    if (bk.times === 'loading') return '<p class="muted small">Finding Neighbors who are free...</p>';
+    if (!bk.times || !bk.times.length) return '<p class="small">No Neighbors who fit are free that day for ' + bk.hours + ' hour' + (bk.hours > 1 ? 's' : '') + '. Try another day or a shorter visit.</p>';
+    return '<div class="times">' + bk.times.map(function (t) { return '<button class="timebtn' + (bk.start === t.start ? ' on' : '') + '" data-time="' + t.start + '">' + tShort(t.start) + '</button>'; }).join('') + '</div>';
+  }
+  function sumHtml() {
+    if (!bk.start) return '';
+    var d = new Date(bk.start), wk = ['Sat', 'Sun'].indexOf(d.toLocaleDateString('en-US', { timeZone: 'America/Chicago', weekday: 'short' })) < 0, hr = +d.toLocaleString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', hourCycle: 'h23' });
+    var rate = wk && hr >= 8 && hr < 18 ? +data.prices.rate_day : +data.prices.rate_eve, end = new Date(d.getTime() + bk.hours * 3600e3).toISOString();
+    var drives = bk.help.some(function (x) { return ['Rides', 'Errands', 'Doctor appointments'].indexOf(x) >= 0; });
+    return '<div class="sumbox"><div class="eyebrow">Your visit</div><p style="margin:4px 0"><strong>' + e(dLong(bk.start)) + ', ' + e(tShort(bk.start)) + ' to ' + e(tShort(end)) + '</strong></p>' +
+      '<p class="small" style="margin:0">' + bk.hours + ' hour' + (bk.hours > 1 ? 's' : '') + ' at ' + money(rate) + ' = <strong>' + money(rate * bk.hours) + '</strong>' + (drives ? ', plus miles for rides and errands at the IRS rate (100% to your Neighbor)' : '') + '.</p>' +
+      '<p class="small muted" style="margin:6px 0 12px">Charged after the visit. Cancel free up to 24 hours before.</p><button class="btn btn-primary" data-book="1"' + (data.family.card ? '' : ' disabled') + '>Book this visit</button><div id="bk-msg"></div></div>';
+  }
+  async function loadTimes() {
+    bk.times = 'loading'; bk.start = ''; document.getElementById('bk-times').innerHTML = timesHtml(); document.getElementById('bk-sum').innerHTML = '';
+    var r = await callV('times', { loved_one_id: bk.lo, date: bk.date, hours: bk.hours, help: bk.help });
+    bk.times = r && r.ok ? r.times : [];
+    var el = document.getElementById('bk-times'); if (el) el.innerHTML = r && r.ok ? timesHtml() : '<div class="msg err">' + e((r && r.error) || 'We could not load times.') + '</div>';
+  }
+  function readBk() {
+    var lo = document.getElementById('bk-lo'); if (!lo) return;
+    bk.lo = lo.value; bk.notes = document.getElementById('bk-notes').value.trim();
+    bk.help = Array.prototype.map.call(app.querySelectorAll('[name="bk-help"]:checked'), function (c) { return c.value; });
+    var hh = app.querySelector('[name="bk-hours"]:checked'); bk.hours = hh ? +hh.value : 2;
+  }
   function cardScreen() {
     return '<button class="back" data-v="pay">&larr; Payment</button><div class="headrow"><h1>Add a card</h1></div>' +
       '<div class="cols"><div class="card"><div id="pay-el" style="min-height:120px"><p class="muted">Loading the secure card form...</p></div>' +
@@ -378,12 +469,14 @@
 
   function render(note) {
     if (!data) { app.innerHTML = startScreen(note); prefill(); return toggleNames(); }
-    var v = { home: homeScreen, people: peopleScreen, me: meScreen, person: personScreen, contact: contactScreen, pay: payScreen, card: cardScreen, receipt: receiptScreen, statement: statementScreen }[view] || homeScreen;
+    var v = { home: homeScreen, visits: visitsScreen, book: bookScreen, people: peopleScreen, me: meScreen, person: personScreen, contact: contactScreen, pay: payScreen, card: cardScreen, receipt: receiptScreen, statement: statementScreen }[view] || homeScreen;
     if ((v === receiptScreen && !recOne) || (v === statementScreen && !rec)) { view = 'pay'; v = payScreen; }
     app.innerHTML = tabbar() + '<div class="tabbody">' + v(note) + '</div>';
     window.scrollTo(0, 0);
     if (v === cardScreen) mountCard();
     if (v === payScreen) { if (rec) drawReceipts(); else loadReceipts(); }
+    if (v === visitsScreen) loadVisits();
+    if (v === bookScreen && bk && bk.start) document.getElementById('bk-sum').innerHTML = sumHtml();
   }
   function prefill() { var z = new URLSearchParams(location.search).get('zip'), el = document.getElementById('s-zip'); if (el && z && /^\d{5}$/.test(z) && !el.value) el.value = z; }
   function toggleNames() { var r = app.querySelector('[name=is_for]:checked'), b = document.getElementById('lo-names'); if (b && r) b.hidden = r.value === 'Me'; }
@@ -417,7 +510,7 @@
     render(r && !r.signin ? '<div class="msg err">' + e(r.error) + '</div>' : '');
   }
 
-  app.addEventListener('change', function (ev) { if (ev.target.name === 'is_for') toggleNames(); if (ev.target.id === 'rc-year') { document.getElementById('rc-list').innerHTML = '<p class="muted">Loading...</p>'; loadReceipts(ev.target.value); } });
+  app.addEventListener('change', function (ev) { if (view === 'book' && (ev.target.id === 'bk-lo' || ev.target.name === 'bk-hours' || ev.target.name === 'bk-help')) { readBk(); if (bk.date) loadTimes(); } if (ev.target.name === 'is_for') toggleNames(); if (ev.target.id === 'rc-year') { document.getElementById('rc-list').innerHTML = '<p class="muted">Loading...</p>'; loadReceipts(ev.target.value); } });
   app.addEventListener('click', async function (ev) {
     var pt = ev.target.closest('[data-ptab]');
     if (pt) {
@@ -427,6 +520,26 @@
       var sb = app.querySelector('.savebar'); if (sb) sb.hidden = ptab === 'contacts';
       var pf = document.getElementById('pf'); if (pf) pf.hidden = ptab === 'contacts';
       return;
+    }
+    var bt = ev.target.closest('[data-day],[data-time],[data-book],[data-vcancel]');
+    if (bt) {
+      if (bt.dataset.day) { readBk(); bk.date = bt.dataset.day; app.querySelectorAll('.daybtn').forEach(function (b) { b.classList.toggle('on', b === bt); }); return loadTimes(); }
+      if (bt.dataset.time) { readBk(); bk.start = bt.dataset.time; app.querySelectorAll('.timebtn').forEach(function (b) { b.classList.toggle('on', b === bt); }); document.getElementById('bk-sum').innerHTML = sumHtml(); return; }
+      if (bt.dataset.book) {
+        readBk(); busy(bt, 'Booking...');
+        var r = await callV('book', { loved_one_id: bk.lo, start: bk.start, hours: bk.hours, help: bk.help, notes: bk.notes });
+        if (r && r.ok) { bk = null; view = 'visits'; return render('<div class="msg ok">Booked! We have asked ' + r.offered + ' Neighbor' + (r.offered === 1 ? '' : 's') + ' who fit. We will email you as soon as one says yes.</div>'); }
+        unbusy(bt); if (r && r.refresh) loadTimes();
+        return say('bk-msg', (r && r.error) || 'That did not work. Please try again.');
+      }
+      if (bt.dataset.vcancel) {
+        var vv = (visits || []).filter(function (x) { return x.id === bt.dataset.vcancel; })[0];
+        var late = vv && vv.status === 'Confirmed' && new Date(vv.start_at).getTime() - Date.now() < 24 * 3600e3;
+        if (bt.dataset.sure !== '1') { bt.dataset.sure = '1'; bt.textContent = late ? 'Less than 24 hours away, so one hour (' + money(vv.rate) + ') is charged. Click again to cancel.' : 'Click again to cancel (no charge)'; return; }
+        busy(bt, 'Cancelling...'); var rc2 = await callV('cancel', { id: bt.dataset.vcancel });
+        if (rc2 && rc2.ok) return render('<div class="msg ok">Visit cancelled.' + (rc2.fee ? ' One hour (' + money(rc2.fee) + ') will be charged because it was within 24 hours.' : ' No charge.') + '</div>');
+        unbusy(bt); return alertMsg(rc2);
+      }
     }
     var sm = ev.target.closest('[data-sample]');
     if (sm) { realRec = rec; rec = sampleRec(); sampleMode = true; if (sm.dataset.sample === 'receipt') { recOne = rec.receipts[0]; view = 'receipt'; } else view = 'statement'; return render(); }

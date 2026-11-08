@@ -46,6 +46,8 @@
   .savebar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; border-top: 1px solid var(--line); margin-top: 18px; padding-top: 16px; }
   .empty { border: 2px dashed var(--line); border-radius: 16px; padding: 22px; text-align: center; color: var(--ink-soft); }
   .linkbtn { background: none; border: 0; font: inherit; font-weight: 800; color: var(--brick); cursor: pointer; padding: 0; }
+  .offer { border: 2px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+  .vis { border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; } .vis summary { cursor: pointer; }
   dl.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; } dl.kv dt { color: var(--ink-soft); } dl.kv dd { margin: 0; font-weight: 700; }
   .ds { display: none; }
   @media (max-width: 560px) { .dl { display: none; } .ds { display: inline; } .week th .small { display: none; } .toplinks .muted { display: none; } .week th { font-size: .82rem; } }
@@ -110,8 +112,8 @@
       '<p class="small muted" style="margin:12px 0 0">' + (a.approved ? (setUp ? 'Turn it off any time you need a break.' : 'Set your free times in My hours first.') : 'This turns on once you are approved.') + '</p><div id="onoff-msg" style="margin-top:8px"></div></div>' +
       '<div class="card"><h2>When you are free</h2><p class="small" style="margin:0 0 10px">' + e(freeSummary(a.availability)) + '</p><p class="small muted" style="margin:0 0 12px">Up to ' + e(a.radius_miles) + ' miles from ' + e(me.zip) + '</p><button class="btn ' + (setUp ? 'btn-ghost' : 'btn-primary') + ' btn-small" data-v="hours">' + (setUp ? 'Change my hours' : 'Set my hours') + '</button></div>' +
       '<div class="card"><h2>Your pay</h2><p class="small" style="margin:0 0 6px"><strong>' + money(a.pay_day) + ' an hour</strong> weekdays, <strong>' + money(a.pay_eve) + '</strong> evenings and weekends</p><p class="small" style="margin:0 0 6px">Mileage at the IRS rate, 100% yours</p><p class="small muted" style="margin:0 0 12px">Paid every Friday to your bank</p><button class="btn btn-ghost btn-small" data-v="pay">See pay details</button></div></div>';
-    h += '<div class="grid-2" style="margin-top:18px"><div class="card"><h2>Visit offers</h2><div class="empty">No offers right now. When a family near you books during your free hours, we text you an offer. The first Neighbor to accept gets the visit.</div></div>' +
-      '<div class="card"><h2>Your upcoming visits</h2><div class="empty">No visits yet. Visits you accept show up here, with the family\'s notes and how to get there.</div></div></div>';
+    h += '<div class="grid-2" style="margin-top:18px"><div class="card"><h2>Visit offers</h2><div id="offers"><p class="muted small">Checking for offers...</p></div></div>' +
+      '<div class="card"><h2>Your upcoming visits</h2><div id="upcoming"><p class="muted small">Loading...</p></div></div></div>';
     return h;
   }
   function hours(note) {
@@ -145,11 +147,40 @@
       '<div class="card"><h2>No tipping</h2><p style="margin:0">Show-Me Neighbors is a no-tipping service. Please kindly say no to tips, cash or gifts, beyond a small thank-you treat.</p></div></div>' +
       '<div class="card" style="margin-top:18px"><h2>Your visits and pay</h2><div class="empty">Each finished visit shows here with the hours, miles and what you earned. You get a 1099 from Stripe each year.</div></div>';
   }
+  // ---------- offers and visits ----------
+  async function callV(action, body) {
+    try {
+      var r = await sb.functions.invoke('visits', { body: Object.assign({ action: action }, body || {}) });
+      if (r.error) { var j = null; try { j = await r.error.context.json(); } catch (x) {} return j || { ok: false, error: 'We could not reach Show-Me Neighbors. Please try again.' }; }
+      return r.data;
+    } catch (x) { return { ok: false, error: 'We could not reach Show-Me Neighbors. Please try again.' }; }
+  }
+  var work = null;
+  function dLong(iso) { return new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Chicago', weekday: 'long', month: 'long', day: 'numeric' }); }
+  function tShort(iso) { return new Date(iso).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' }); }
+  function when(v) { return dLong(v.start_at) + ', ' + tShort(v.start_at) + ' to ' + tShort(v.end_at); }
+  async function loadWork() { var r = await callV('offers'); work = r && r.ok ? r : null; drawWork(r && !r.ok ? r.error : ''); }
+  function drawWork(err) {
+    var o = document.getElementById('offers'), u = document.getElementById('upcoming'); if (!o || !u) return;
+    if (!work) { o.innerHTML = u.innerHTML = '<div class="msg err">' + e(err || 'Could not load.') + '</div>'; return; }
+    o.innerHTML = work.offers.length ? work.offers.map(function (x) {
+      return '<div class="offer"><strong>' + e(when(x)) + '</strong><div class="small">' + e(x.first_name) + ' in ' + e(x.city) + ', ' + e(x.miles) + ' miles from you</div><div class="small">Help: ' + e((x.help || []).join(', ') || 'Company') + (x.pets && x.pets.length ? ' · Pets: ' + e(x.pets.join(', ')) : '') + '</div>' +
+        '<div class="small" style="margin:4px 0 8px"><strong>You earn ' + money(x.pay) + '</strong> (' + x.hours + ' hr at ' + money(x.pay_rate) + ') plus 100% of mileage</div><button class="btn btn-primary btn-small" data-accept="' + x.offer_id + '">Accept</button> <button class="linkbtn" style="margin-left:12px" data-decline="' + x.offer_id + '">No thanks</button><div class="omsg"></div></div>';
+    }).join('') : '<div class="empty">No offers right now. When a family near you books during your free hours, we send you an offer. The first Neighbor to accept gets the visit.</div>';
+    u.innerHTML = work.visits.length ? work.visits.map(function (v) {
+      return '<details class="vis"><summary><strong>' + e(when(v)) + '</strong><span class="small"> with ' + e(v.name) + '</span></summary><dl class="kv" style="margin-top:10px"><dt>Address</dt><dd>' + e(v.address) + '</dd>' + (v.phone ? '<dt>Their phone</dt><dd>' + e(v.phone) + '</dd>' : '') +
+        '<dt>Help</dt><dd>' + e((v.help || []).join(', ') || 'Company') + '</dd>' + (v.family_notes ? '<dt>For this visit</dt><dd>' + e(v.family_notes) + '</dd>' : '') + (v.arrival ? '<dt>Getting there</dt><dd>' + e(v.arrival) + '</dd>' : '') +
+        (v.good_to_know ? '<dt>Good to know</dt><dd>' + e(v.good_to_know) + '</dd>' : '') + (v.interests ? '<dt>Enjoys</dt><dd>' + e(v.interests) + '</dd>' : '') + (v.pets && v.pets.length ? '<dt>Pets</dt><dd>' + e(v.pets.join(', ') + (v.pet_notes ? ' (' + v.pet_notes + ')' : '')) + '</dd>' : '') +
+        '<dt>Emergency</dt><dd>Call 911 first. Then ' + (v.emergency.length ? v.emergency.map(function (c) { return e(c.name + (c.relation ? ' (' + c.relation + ')' : '') + ' ' + (c.phone || '')); }).join(', ') : 'the on-call line') + '</dd><dt>You earn</dt><dd>' + money(v.pay) + ' plus 100% of mileage</dd></dl>' +
+        '<button class="linkbtn red" style="margin-top:10px" data-ncancel="' + v.id + '">I can no longer make this visit</button><div class="omsg"></div></details>';
+    }).join('') : '<div class="empty">No visits yet. Visits you accept show up here, with the address, the family\'s notes and how to get in.</div>';
+  }
   function render(note) {
     if (!me) return;
     var v = { home: home, hours: hours, profile: profile, pay: pay }[view] || home;
     app.innerHTML = tabbar() + v(note);
     window.scrollTo(0, 0);
+    if (v === home) { if (work) drawWork(); loadWork(); }
   }
   function header() {
     whoEl.innerHTML = me ? '<button class="btn btn-ghost btn-small" id="out">Sign out</button>' : '';
@@ -183,6 +214,18 @@
   }
 
   app.addEventListener('click', async function (ev) {
+    var w = ev.target.closest('[data-accept],[data-decline],[data-ncancel]');
+    if (w) {
+      var box = w.parentNode.querySelector('.omsg');
+      if (w.dataset.accept) { busy(w, 'Accepting...'); var r = await callV('accept', { offer_id: w.dataset.accept }); if (r && r.ok) { work = null; return render('<div class="msg ok">The visit is yours! The address and details are under Your upcoming visits.</div>'); } unbusy(w); box.innerHTML = '<div class="msg err" style="margin:8px 0 0">' + e((r && r.error) || 'That did not work.') + '</div>'; return loadWork(); }
+      if (w.dataset.decline) { busy(w, '...'); await callV('decline', { offer_id: w.dataset.decline }); return loadWork(); }
+      if (w.dataset.ncancel) {
+        if (w.dataset.sure !== '1') { w.dataset.sure = '1'; w.textContent = 'The family is counting on you. Click again to give this visit back. We will find another Neighbor.'; return; }
+        busy(w, 'Giving it back...'); var r2 = await callV('cancel_visit', { id: w.dataset.ncancel });
+        if (r2 && r2.ok) return render('<div class="msg ok">Thanks for letting us know. We are already asking other Neighbors.</div>');
+        unbusy(w); box.innerHTML = '<div class="msg err" style="margin:8px 0 0">' + e((r2 && r2.error) || 'That did not work.') + '</div>'; return;
+      }
+    }
     var t = ev.target.closest('[data-v],[data-slot],[data-save]'); if (!t) return;
     if (t.dataset.v) { view = t.dataset.v; return render(); }
     if (t.dataset.slot) {
