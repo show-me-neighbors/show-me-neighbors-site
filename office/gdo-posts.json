@@ -1,0 +1,110 @@
+{
+  "note": "Good Days Out posts and Reels (drafted 11-08-2026, awaiting Samantha's OK). Not scheduled. Each has its own link code so Marketing shows which ones bring people in.",
+  "posts": [
+    {
+      "id": "gdo-reel-families", "kind": "reel", "audience": "family", "video": "gdo-families", "code": "fb-gdo-reel",
+      "theme": "Reel: A good day out, anywhere in Missouri (43 seconds)",
+      "link": "https://showmeneighbors.com/good-days-out/?from=fb-gdo-reel",
+      "text": "When was the last time Mom had a really good day out? 🌳\n\nWe gathered 1,585 real places in every Missouri county: senior centers, parks, museums, music, markets and festivals. Type your town and see what is close, then plan a whole day around what they love.\n\nFind a good day out near you:\n{LINK}",
+      "tags": "#Missouri #GoodDaysOut #AgingParents #ShowMeState"
+    },
+    {
+      "id": "gdo-reel-neighbors", "kind": "reel", "audience": "neighbor", "video": "gdo-neighbors", "code": "fb-gdo-reel-n",
+      "theme": "Reel: Know the best pie in your county? (33 seconds)",
+      "link": "https://showmeneighbors.com/apply/?from=fb-gdo-reel-n",
+      "text": "Know the best pie in your county? You could get paid to share it. 🥧\n\nShow-Me Neighbors are friendly local people who give older adults company, rides and a good day out. Pick your hours, stay close to home and get paid after every visit.\n\nBe one of the first Neighbors in your county:\n{LINK}",
+      "tags": "#MissouriJobs #PartTimeJobs #FlexibleWork #Retirees"
+    },
+    {
+      "id": "gdo-reel-springfield", "kind": "reel", "audience": "family", "video": "gdo-springfield", "code": "fb-gdo-reel-sgf",
+      "theme": "Reel: Good days out near Springfield (30 seconds)",
+      "link": "https://showmeneighbors.com/good-days-out/greene-county/?from=fb-gdo-reel-sgf",
+      "text": "Springfield, we found 54 good days out right here in Greene County. 🌸\n\nThe Mizumoto Japanese Stroll Garden, Wonders of Wildlife, lunch at the Northview Center and plenty more. Plan a day around what Mom or Dad loves, and book a friendly local Neighbor to go along.\n\nSee them all:\n{LINK}",
+      "tags": "#SpringfieldMO #417land #GreeneCounty"
+    },
+    {
+      "id": "gdo-reel-branson", "kind": "reel", "audience": "family", "video": "gdo-branson", "code": "fb-gdo-reel-branson",
+      "theme": "Reel: Good days out near Branson (30 seconds)",
+      "link": "https://showmeneighbors.com/good-days-out/taney-county/?from=fb-gdo-reel-branson",
+      "text": "Branson and Table Rock Lake friends, here is a good day out list for Mom and Dad. 🎣\n\nThe Shepherd of the Hills Fish Hatchery, a stroll on Branson Landing, lunch at the Keeter Center and more. Plan the day, and book a friendly local Neighbor to go along.\n\nSee them all:\n{LINK}",
+      "tags": "#BransonMO #TableRockLake #TaneyCounty"
+    },
+    {
+      "id": "gdo-reel-stcharles", "kind": "reel", "audience": "family", "video": "gdo-stcharles", "code": "fb-gdo-reel-stc",
+      "theme": "Reel: Good days out in St. Charles County (27 seconds)",
+      "link": "https://showmeneighbors.com/good-days-out/st-charles-county/?from=fb-gdo-reel-stc",
+      "text": "St. Charles County, we found 57 good days out close to home. 🚂\n\nHistoric Main Street, the Lewis and Clark Boat House, an easy stroll on the Katy Trail and more. Plan the day, and book a friendly local Neighbor to go along.\n\nSee them all:\n{LINK}",
+      "tags": "#StCharlesMO #StCharlesCounty #OFallonMO #StPetersMO"
+    },
+    {
+      "id": "gdo-post-launch", "kind": "post", "audience": "family", "code": "fb-gdo-launch",
+      "theme": "Launch: 1,585 good days out on one map",
+      "link": "https://showmeneighbors.com/good-days-out/?from=fb-gdo-launch",
+      "text": "We just put 1,585 good days out on one map, in every county in Missouri. 🗺️\n\nLunch and cards at the senior center. A slow loop around the lake. Pie on the courthouse square. The county fair. That museum they have meant to see for years.\n\nType any Missouri town or ZIP code and see what is closest. It is free for anyone to use, so share it with a friend who is looking for ideas for Mom or Dad.\n\n{LINK}",
+      "tags": "#Missouri #GoodDaysOut #ShowMeState"
+    },
+    {
+      "id": "gdo-post-plan", "kind": "post", "audience": "family", "code": "fb-gdo-plan",
+      "theme": "Try the day planner",
+      "link": "https://showmeneighbors.com/good-days-out/?from=fb-gdo-plan#gdo-plan",
+      "text": "Not sure where to take Mom this week? Try our free day planner. ☀️\n\nType her town, pick what she enjoys (fresh air, history, music, shops and pie) and choose 2, 3 or 4 hours. It sketches a real day out with real places close to home.\n\nWhen you like the plan, a friendly, background-checked Neighbor can drive her there, walk alongside and bring her home again.\n\nPlan a day:\n{LINK}",
+      "tags": "#Missouri #AgingParents #GoodDaysOut"
+    },
+    {
+      "id": "gdo-post-springfield", "kind": "post", "audience": "family", "code": "fb-gdo-sgf",
+      "theme": "Springfield: three good days out",
+      "link": "https://showmeneighbors.com/good-days-out/greene-county/?from=fb-gdo-sgf",
+      "text": "Three good days out in Springfield, for Mom, Dad or Grandma: 🌳\n\n1. A slow walk through the Mizumoto Japanese Stroll Garden\n2. Lunch, bingo and friends at the Northview Center\n3. The aquarium and wildlife galleries at Wonders of Wildlife\n\nWe have 54 more ideas in Greene County on one page, with a map.\n\n{LINK}",
+      "tags": "#SpringfieldMO #417land #GreeneCounty"
+    },
+    {
+      "id": "gdo-post-branson", "kind": "post", "audience": "family", "code": "fb-gdo-branson",
+      "theme": "Branson and Table Rock Lake: three good days out",
+      "link": "https://showmeneighbors.com/good-days-out/taney-county/?from=fb-gdo-branson",
+      "text": "Three good days out around Branson, for Mom, Dad or Grandma: 🎣\n\n1. Watch the trout at the Shepherd of the Hills Fish Hatchery\n2. Lunch at the Keeter Center at College of the Ozarks\n3. A lakefront stroll and the fountain show at Branson Landing\n\nSee more ideas around Branson and Table Rock Lake, with a map:\n{LINK}",
+      "tags": "#BransonMO #TableRockLake #TaneyCounty #StoneCounty"
+    },
+    {
+      "id": "gdo-post-stcharles", "kind": "post", "audience": "family", "code": "fb-gdo-stc",
+      "theme": "St. Charles County: three good days out",
+      "link": "https://showmeneighbors.com/good-days-out/st-charles-county/?from=fb-gdo-stc",
+      "text": "Three good days out in St. Charles County, for Mom, Dad or Grandma: 🚂\n\n1. Shops and lunch on historic Main Street\n2. The replica expedition boats at the Lewis and Clark Boat House\n3. An easy, flat stroll on the Katy Trail\n\nWe have 57 ideas in St. Charles County on one page, with a map.\n\n{LINK}",
+      "tags": "#StCharlesMO #StCharlesCounty #OFallonMO #StPetersMO"
+    },
+    {
+      "id": "gdo-post-holiday", "kind": "post", "audience": "family", "code": "fb-gdo-holiday",
+      "theme": "Christmas lights and holiday outings near you",
+      "link": "https://showmeneighbors.com/good-days-out/?from=fb-gdo-holiday",
+      "text": "Christmas lights, candlelight tours and holiday markets are coming up all over Missouri. 🎄\n\nOur Good Days Out page has a month by month calendar of festivals near any Missouri town. Type your town and scroll to \"Through the year\" to see what is happening this month and next.\n\nA great way to give Mom or Dad something to look forward to.\n\n{LINK}",
+      "tags": "#Missouri #ChristmasLights #GoodDaysOut"
+    },
+    {
+      "id": "gdo-post-ask", "kind": "post", "audience": "family", "code": "fb-gdo-ask",
+      "theme": "Question post: what is the best day out in your town?",
+      "link": "https://showmeneighbors.com/good-days-out/?from=fb-gdo-ask",
+      "text": "Quick question for you, Missouri: 💬\n\nWhat is the best day out in YOUR town for an older adult? The diner with the best pie, the park with the nicest benches, the little museum everyone forgets about.\n\nTell us in the comments. We are adding favorites to our free Good Days Out map:\n{LINK}",
+      "tags": "#Missouri #SmallTownMissouri #GoodDaysOut"
+    },
+    {
+      "id": "gdo-post-faraway", "kind": "post", "audience": "family", "code": "fb-gdo-far",
+      "theme": "For adult kids who live far away",
+      "link": "https://showmeneighbors.com/good-days-out/?from=fb-gdo-far",
+      "text": "Live a few hours away from Mom or Dad? It is hard to know what is even going on in their town anymore. 📍\n\nType their town on our free Good Days Out map and you will see the senior center, the library, parks, museums and festivals close to them. Great ideas for your next phone call, or your next visit home.\n\n{LINK}",
+      "tags": "#Missouri #AgingParents #LongDistanceCaregiving"
+    },
+    {
+      "id": "gdo-post-neighbors", "kind": "post", "audience": "neighbor", "code": "fb-gdo-pie",
+      "theme": "Recruiting: get paid to share your town's best spots",
+      "link": "https://showmeneighbors.com/apply/?from=fb-gdo-pie",
+      "text": "Know the best pie in your county? You could get paid to share it. 🥧\n\nShow-Me Neighbors is looking for friendly local people to give older adults company, rides and a good day out: lunch at the senior center, a walk in the park, the county fair.\n\n✔️ Pick the hours that suit you\n✔️ Stay close to home\n✔️ Get paid after every visit\n✔️ No healthcare experience needed\n\nApply in about 5 minutes:\n{LINK}",
+      "tags": "#MissouriJobs #PartTimeJobs #FlexibleWork #Retirees"
+    },
+    {
+      "id": "gdo-post-county", "kind": "post", "audience": "family", "code": "fb-gdo-county",
+      "theme": "Every county has its own page",
+      "link": "https://showmeneighbors.com/good-days-out/?from=fb-gdo-county#gdo-regions",
+      "text": "From Atchison County to the Bootheel, every Missouri county now has its own Good Days Out page. 🗺️\n\nEach one lists the towns in that county, real places for a good day out, a map and a free day planner. Find your county and share it with someone who would love an outing.\n\n{LINK}",
+      "tags": "#Missouri #ShowMeState #GoodDaysOut"
+    }
+  ]
+}

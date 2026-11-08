@@ -159,6 +159,14 @@
       list.forEach(function (it) { it._d = it.lat != null ? miles(state.where.pt, [it.lat, it.lon]) : 9999; });
       list.sort(function (a, b) { return a._d - b._d; });
     }
+    // No town typed yet: mix the types so the first cards show a park, a museum, a senior center, a festival...
+    if ((!state.where || state.where.auto) && state.cat === 'all' && !state.q) {
+      var MIX = ['park-garden', 'museum-history', 'senior-center', 'events-seasonal', 'arts-music-classes', 'everyday', 'library', 'exercise', 'volunteering'], by = {}, out = [];
+      list.forEach(function (it) { (by[it.category] = by[it.category] || []).push(it); });
+      for (var i = 0; out.length < list.length; i++) MIX.forEach(function (k) { if (by[k] && by[k][i]) out.push(by[k][i]); });
+      if (!state.where) { var seedN = new Date().getDate(); out = out.slice(seedN % 9).concat(out.slice(0, seedN % 9)); }
+      list = out;
+    }
     return list;
   }
   function renderExplorer(fit) {
