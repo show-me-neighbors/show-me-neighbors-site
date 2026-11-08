@@ -12,7 +12,27 @@
 <style>
   body { background: #f5f8fc; }
   main { padding-block: 28px 70px; }
-  .box { max-width: 720px; margin: 0 auto; }
+  .box { max-width: 1200px; margin: 0 auto; }
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 24px; align-items: start; }
+  .dash { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+  .stack > * + * { margin-top: 16px; }
+  .stack .card, .cols .card, .dash .card, .people .card, .pgrid .card { margin-bottom: 0; }
+  .people { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .pgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .hero-band { background: var(--ink); color: #fff; border-radius: 20px; padding: 26px 30px; display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 22px; }
+  .hero-band h1 { color: #fff; margin: 0; font-size: 2.1rem; }
+  .hero-band p { margin: 4px 0 0; color: #c9d8ea; }
+  .hero-band .pill { background: rgba(255,255,255,.12); border-radius: 14px; padding: 12px 16px; max-width: 520px; font-weight: 600; }
+  .hero-band .pill strong { color: var(--sun); }
+  .steps-mini { list-style: none; padding: 0; margin: 16px 0 0; }
+  .steps-mini li { display: flex; gap: 12px; align-items: flex-start; margin: 12px 0; }
+  .steps-mini b { flex: 0 0 30px; height: 30px; border-radius: 50%; background: var(--sun); color: var(--ink); display: grid; place-items: center; font-weight: 900; }
+  .section-h { margin: 0 0 12px; font-size: 1.35rem; }
+  .card h2 { font-size: 1.35rem; }
+  .person-card { display: flex; flex-direction: column; justify-content: space-between; min-height: 170px; }
+  .add-tile { border: 2px dashed var(--line); border-radius: 18px; background: transparent; font: inherit; font-weight: 800; color: var(--brick); cursor: pointer; min-height: 170px; }
+  .add-tile:hover { border-color: var(--brick); background: #fff; }
+  @media (max-width: 900px) { .cols, .dash, .pgrid { grid-template-columns: 1fr; } .hero-band { padding: 22px; } }
   .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 16px; }
   .card h2 { margin-top: 0; }
   .muted { color: var(--ink-soft); }
@@ -37,7 +57,8 @@
   .linkbtn { background: none; border: 0; font: inherit; font-weight: 800; color: var(--brick); cursor: pointer; padding: 0; }
   .linkbtn.red { color: #8a3a22; }
   textarea { min-height: 80px; }
-  .sticky-save { position: sticky; bottom: 0; background: linear-gradient(transparent, #f5f8fc 30%); padding: 18px 0 8px; }
+  .sticky-save { position: sticky; bottom: 0; background: linear-gradient(transparent, #f5f8fc 30%); padding: 18px 0 8px; z-index: 2; }
+  .sticky-save .btn { max-width: 360px; }
 </style>
 </head>
 <body>
@@ -88,44 +109,44 @@
       '<form id="lf"><div class="field"><label for="lf-em">Email</label><input id="lf-em" type="email" autocomplete="email" required></div><button class="btn btn-ghost">Email me a link</button></form><div id="lf-msg">' + (note || '') + '</div></div>';
   }
   function startScreen(note) {
-    return '<div class="card"><h1 style="font-size:2rem;margin-top:0">Make your family account</h1><p>It is free and takes about 2 minutes. Then tell us a little about the person you are booking for, so their Neighbor can feel like a friend from the first hello.</p>' + (note || '') + '</div>' +
-      '<form id="sf" class="card" novalidate><div style="position:absolute;left:-9999px" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div>' +
+    return '<div class="cols"><div class="stack"><div class="card"><h1 style="font-size:2.2rem;margin-top:0">Make your family account</h1><p>It is free and takes about 2 minutes. Then tell us a little about the person you are booking for, so their Neighbor can feel like a friend from the first hello.</p>' + (note || '') +
+      '<ul class="steps-mini"><li><b>1</b><span><strong>Make your account.</strong> Just your name, email and ZIP code.</span></li><li><b>2</b><span><strong>Tell us about your loved one.</strong> What they enjoy, what would help, and who to call.</span></li><li><b>3</b><span><strong>Book visits when we open.</strong> We will email you the moment booking opens in your area.</span></li></ul></div>' + signInBox() + '</div>' +
+      '<form id="sf" class="card" novalidate><h2 style="margin-top:0">Your details</h2><div style="position:absolute;left:-9999px" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div>' +
       '<fieldset class="field ticks"><legend>Who are the visits for?</legend><div class="who-row"><label class="tick"><input type="radio" name="is_for" value="A loved one" checked><span>Someone I love</span></label><label class="tick"><input type="radio" name="is_for" value="Me"><span>Me</span></label></div></fieldset>' +
       '<div class="grid-2"><div class="field"><label for="s-first">Your first name</label><input id="s-first" autocomplete="given-name"></div><div class="field"><label for="s-last">Your last name</label><input id="s-last" autocomplete="family-name"></div></div>' +
       '<div class="grid-2" id="lo-names"><div class="field"><label for="s-pfirst">Their first name</label><input id="s-pfirst" placeholder="Like Dorothy"></div><div class="field"><label for="s-plast">Their last name</label><input id="s-plast"></div></div>' +
       '<div class="grid-2"><div class="field"><label for="s-email">Your email</label><input id="s-email" type="email" autocomplete="email"></div><div class="field"><label for="s-phone">Your mobile phone</label><input id="s-phone" type="tel" autocomplete="tel"></div></div>' +
-      '<div class="field"><label for="s-zip">ZIP code where the visits will be</label><input id="s-zip" inputmode="numeric" maxlength="5"></div>' +
-      '<div class="field"><label for="s-heard">How did you hear about us?</label><select id="s-heard"><option value="">Choose one</option><option>Friend or family</option><option>Facebook or social media</option><option>Online search</option><option>Doctor, church or community group</option><option>Flyer or newspaper</option><option>Other</option></select></div>' +
+      '<div class="grid-2"><div class="field"><label for="s-zip">ZIP code where the visits will be</label><input id="s-zip" inputmode="numeric" maxlength="5"></div>' +
+      '<div class="field"><label for="s-heard">How did you hear about us?</label><select id="s-heard"><option value="">Choose one</option><option>Friend or family</option><option>Facebook or social media</option><option>Online search</option><option>Doctor, church or community group</option><option>Flyer or newspaper</option><option>Other</option></select></div></div>' +
       '<p class="form-consent">By making an account you agree Show-Me Neighbors may email and text you about your account and visits. Message and data rates may apply. See our <a href="../privacy.html">privacy policy</a>.</p>' +
-      '<button class="btn btn-primary" style="width:100%">Make my account</button><div id="sf-msg"></div></form>' + signInBox();
+      '<button class="btn btn-primary" style="width:100%">Make my account</button><div id="sf-msg"></div></form></div>';
   }
 
   // ---------- signed in ----------
   function homeScreen(note) {
-    var f = data.family;
-    var h = '<h1 style="font-size:2rem;margin-top:0">Hi, ' + e(f.first_name) + '</h1>' + (note || '');
-    h += data.bookings_open
-      ? '<div class="card"><h2>Book a visit</h2><p>Booking is coming to this page next.</p></div>'
-      : '<div class="msg info" style="font-weight:600;margin:0 0 16px"><strong>Booking opens soon.</strong> We are welcoming our first Neighbors now. Finish your profile below, and we will email you the moment you can book your first visit.</div>';
-    h += '<h2 style="margin:22px 0 10px">' + (data.people.length > 1 ? 'The people you book for' : 'Who the visits are for') + '</h2>';
+    var f = data.family, cd = f.card;
+    var h = '<div class="hero-band"><div><h1>Hi, ' + e(f.first_name) + '</h1><p>Your Show-Me Neighbors family account</p></div>' +
+      (data.bookings_open ? '<div class="pill"><strong>Booking is open.</strong> Choose a person below to book a visit.</div>'
+        : '<div class="pill"><strong>Booking opens soon.</strong> We are welcoming our first Neighbors now. Finish your profile, and we will email you the moment you can book your first visit.</div>') + '</div>' + (note || '');
+    h += '<div class="dash"><div><h2 class="section-h">' + (data.people.length > 1 ? 'The people you book for' : 'Who the visits are for') + '</h2><div class="people">';
     data.people.forEach(function (p) {
       var fl = filled(p), init = (p.preferred || p.first_name || '?').charAt(0).toUpperCase();
-      h += '<div class="card"><div class="person"><div style="display:flex;gap:14px;align-items:center"><div class="initial">' + e(init) + '</div><div><strong style="font-size:1.15rem">' + e(nameOf(p)) + '</strong>' + (p.is_self ? ' <span class="chip">You</span>' : '') +
+      h += '<div class="card person-card"><div><div style="display:flex;gap:14px;align-items:center"><div class="initial">' + e(init) + '</div><div><strong style="font-size:1.15rem">' + e(nameOf(p)) + '</strong>' + (p.is_self ? ' <span class="chip">You</span>' : '') +
         '<div class="muted" style="font-size:.92rem">' + e([p.city, p.zip].filter(Boolean).join(', ')) + (p.area === 'Not yet served' ? ' <span class="chip red">Not in our area yet</span>' : '') + '</div></div></div>' +
-        '<button class="btn ' + (fl.pct < 100 ? 'btn-primary' : 'btn-ghost') + ' btn-small" data-edit="' + p.id + '">' + (fl.pct < 100 ? 'Finish profile' : 'Edit profile') + '</button></div>' +
-        '<div class="bar" aria-hidden="true"><span style="width:' + fl.pct + '%"></span></div><div class="muted" style="font-size:.88rem">Profile ' + (fl.pct < 100 ? fl.n + ' of ' + fl.of + ' parts done' : 'complete. Thank you!') + '</div></div>';
+        '<div class="bar" aria-hidden="true" style="max-width:none;margin-top:16px"><span style="width:' + fl.pct + '%"></span></div><div class="muted" style="font-size:.88rem">Profile ' + (fl.pct < 100 ? fl.n + ' of ' + fl.of + ' parts done' : 'complete. Thank you!') + '</div></div>' +
+        '<div style="margin-top:14px"><button class="btn ' + (fl.pct < 100 ? 'btn-primary' : 'btn-ghost') + ' btn-small" data-edit="' + p.id + '">' + (fl.pct < 100 ? 'Finish profile' : 'Edit profile') + '</button></div></div>';
     });
-    if (data.people.length < 6) h += '<button class="btn btn-ghost" data-edit="new">Add another person</button>';
-    var cd = f.card;
-    h += '<div class="card" style="margin-top:22px"><h2>How you will pay</h2>' + (cd
+    if (data.people.length < 6) h += '<button class="add-tile" data-edit="new">+ Add another person</button>';
+    h += '</div></div><div class="stack"><div class="card"><h2 style="margin-top:0">How you will pay</h2>' + (cd
       ? '<p style="margin:0"><strong>' + e(cd.brand) + ' ending in ' + e(cd.last4) + '</strong><br><span class="muted">Expires ' + e(cd.exp) + '</span></p><p class="muted" style="font-size:.92rem">We only charge this card after a visit is finished, for that visit. You will get a receipt by email every time.</p><button class="linkbtn" data-v="card">Use a different card</button> <button class="linkbtn red" style="margin-left:14px" data-cardrm="1">Remove</button>'
       : '<p style="margin-top:0">Add a card now so you are ready to book. <strong>You will not be charged now.</strong> We only charge after each visit is finished, for that visit.</p><button class="btn btn-primary btn-small" data-v="card">Add a card</button>') + '</div>';
-    h += '<div class="card"><h2>Your details</h2><p style="margin:0">' + e(f.first_name + ' ' + f.last_name) + '<br>' + e(f.email) + (f.phone ? '<br>' + e(f.phone) : '') + '</p><button class="linkbtn" style="margin-top:10px" data-v="me">Edit my details</button></div>';
+    h += '<div class="card"><h2 style="margin-top:0">Your details</h2><p style="margin:0">' + e(f.first_name + ' ' + f.last_name) + '<br>' + e(f.email) + (f.phone ? '<br>' + e(f.phone) : '') + '</p><button class="linkbtn" style="margin-top:10px" data-v="me">Edit my details</button></div>' +
+      '<div class="card"><h2 style="margin-top:0">Questions?</h2><p style="margin:0">Email us at <strong>hello@showmeneighbors.com</strong>. A real person reads every message.</p></div></div></div>';
     return h;
   }
   function meScreen() {
     var f = data.family;
-    return '<button class="back" data-v="home">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">Your details</h1><form id="mf" class="card">' +
+    return '<button class="back" data-v="home">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">Your details</h1><form id="mf" class="card" style="max-width:640px">' +
       '<div class="grid-2"><div class="field"><label for="m-first">First name</label><input id="m-first" value="' + e(f.first_name) + '"></div><div class="field"><label for="m-last">Last name</label><input id="m-last" value="' + e(f.last_name) + '"></div></div>' +
       '<div class="field"><label for="m-phone">Mobile phone</label><input id="m-phone" type="tel" value="' + e(f.phone || '') + '"></div>' +
       '<p class="muted" style="font-size:.92rem">Your email is ' + e(f.email) + '. To change it, reply to any of our emails.</p><button class="btn btn-primary">Save</button><div id="mf-msg"></div></form>';
@@ -135,22 +156,23 @@
     var they = p.is_self ? 'you' : (p.preferred || p.first_name || 'they');
     var h = '<button class="back" data-v="home">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">' + (editId === 'new' ? 'Add a person' : 'About ' + e(p.is_self ? 'you' : (p.preferred || p.first_name))) + '</h1>' +
       '<p class="muted">This helps us send the right Neighbor and helps them feel like a friend from the first visit. Only you, our team and the Neighbor visiting can see it.</p>' +
-      '<form id="pf" novalidate><div class="card"><h2>The basics</h2>' +
+      '<div><form id="pf" novalidate><div class="pgrid"><div class="card"><h2 style="margin-top:0">The basics</h2>' +
       '<div class="grid-2"><div class="field"><label for="p-first">First name</label><input id="p-first" value="' + e(p.first_name === 'Your loved one' ? '' : p.first_name) + '"></div><div class="field"><label for="p-last">Last name</label><input id="p-last" value="' + e(p.last_name) + '"></div></div>' +
       '<div class="grid-2"><div class="field"><label for="p-pref">Name ' + (p.is_self ? 'you go' : 'they go') + ' by (optional)</label><input id="p-pref" value="' + e(p.preferred || '') + '" placeholder="Like Dot or Mr. Jim"></div><div class="field"><label for="p-phone">' + (p.is_self ? 'Your' : 'Their') + ' phone (optional)</label><input id="p-phone" type="tel" value="' + e(p.phone || '') + '"></div></div>' +
       '<div class="field"><label for="p-street">Street address where the visits will be</label><input id="p-street" autocomplete="street-address" value="' + e(p.street || '') + '"></div>' +
       '<div class="grid-2"><div class="field"><label for="p-city">City</label><input id="p-city" value="' + e(p.city || '') + '"></div><div class="field"><label for="p-zip">ZIP code</label><input id="p-zip" inputmode="numeric" maxlength="5" value="' + e(p.zip || '') + '"></div></div></div>' +
-      '<div class="card"><h2>What would help most?</h2><fieldset class="field ticks"><legend>Pick any.</legend>' + checks('help', HELP, p.help) + '</fieldset>' +
+      '<div class="card"><h2 style="margin-top:0">What would help most?</h2><fieldset class="field ticks"><legend>Pick any.</legend>' + checks('help', HELP, p.help) + '</fieldset>' +
       '<p class="muted" style="font-size:.92rem;margin:6px 0 0">Neighbors offer friendly, everyday help. They never give personal care like bathing, dressing or help in the bathroom, never handle medicine, and never lift anyone.</p></div>' +
-      '<div class="card"><h2>Matching</h2><fieldset class="field ticks"><legend>Would ' + e(they) + ' like a Neighbor who is...</legend>' + radios('gender_pref', ['No preference', 'A woman', 'A man'], p.gender_pref || 'No preference') + '</fieldset>' +
+      '<div class="card"><h2 style="margin-top:0">Matching</h2><fieldset class="field ticks"><legend>Would ' + e(they) + ' like a Neighbor who is...</legend>' + radios('gender_pref', ['No preference', 'A woman', 'A man'], p.gender_pref || 'No preference') + '</fieldset>' +
       '<fieldset class="field ticks"><legend>Any pets at home?</legend>' + checks('pets', PETS, p.pets) + '</fieldset>' +
       '<div class="field"><label for="p-petnotes">About the pets (optional)</label><input id="p-petnotes" value="' + e(p.pet_notes || '') + '" placeholder="Like a friendly old beagle named Max"></div>' +
       '<div class="field"><label for="p-int">What does ' + e(they) + ' enjoy?</label><textarea id="p-int" placeholder="Card games, gardening, old Westerns, the Cardinals, church, talking about grandkids...">' + e(p.interests || '') + '</textarea></div></div>' +
-      '<div class="card"><h2>Good to know</h2><div class="field"><label for="p-know">Anything a visitor should know?</label><textarea id="p-know" placeholder="Hard of hearing on the left side, uses a walker, likes things done a certain way, memory is not what it was...">' + e(p.good_to_know || '') + '</textarea></div>' +
+      '<div class="card"><h2 style="margin-top:0">Good to know</h2><div class="field"><label for="p-know">Anything a visitor should know?</label><textarea id="p-know" placeholder="Hard of hearing on the left side, uses a walker, likes things done a certain way, memory is not what it was...">' + e(p.good_to_know || '') + '</textarea></div>' +
       '<div class="field"><label for="p-arr">Getting there</label><textarea id="p-arr" placeholder="Park in the driveway, use the side door, knock loudly...">' + e(p.arrival || '') + '</textarea></div></div>' +
-      '<div class="sticky-save"><button class="btn btn-primary" style="width:100%">Save</button><div id="pf-msg"></div></div></form>';
+      '</div><div class="sticky-save"><button class="btn btn-primary" style="width:100%">Save</button><div id="pf-msg"></div></div></form><div class="pgrid" style="margin-top:8px">';
+    if (editId === 'new') h += '<div class="card"><h2 style="margin-top:0">Contacts</h2><p class="muted" style="margin:0">Save this person first, then add who to call in an emergency and who gets visit updates.</p></div>';
     if (editId !== 'new') {
-      h += '<div class="card"><h2>Contacts</h2><p class="muted" style="margin-top:0">Who should we call in an emergency (after 911), and who would like visit notes and updates?</p>' +
+      h += '<div class="card"><h2 style="margin-top:0">Contacts</h2><p class="muted" style="margin-top:0">Who should we call in an emergency (after 911), and who would like visit notes and updates?</p>' +
         (p.contacts.length ? p.contacts.map(function (c) {
           return '<div class="contact"><div><strong>' + e(c.name) + '</strong>' + (c.relation ? ' <span class="muted">(' + e(c.relation) + ')</span>' : '') + '<br><span class="muted" style="font-size:.92rem">' + e([c.phone, c.email].filter(Boolean).join(' · ')) + '</span><br>' +
             (c.emergency ? '<span class="chip red">Emergency contact</span>' : '') + (c.gets_updates ? '<span class="chip">Gets visit updates</span>' : '') + '</div><div><button class="linkbtn" data-cedit="' + c.id + '">Edit</button></div></div>';
@@ -158,14 +180,14 @@
         '<button class="btn btn-ghost btn-small" data-cedit="new">Add a contact</button></div>';
       if (!p.is_self && data.people.length > 1) h += '<p style="text-align:center"><button class="linkbtn red" data-del="' + p.id + '">Remove ' + e(nameOf(p)) + '</button></p>';
     }
-    return h;
+    return h + '</div></div>';
   }
   function cardScreen() {
     return '<button class="back" data-v="home">&larr; Back</button><h1 style="font-size:2rem;margin-top:0">Add a card</h1>' +
-      '<div class="card"><p style="margin-top:0"><strong>You will not be charged now.</strong> After each visit is finished, we charge this card for that visit and email you a receipt. You can change or remove it any time.</p>' +
-      '<div id="pay-el" style="min-height:120px"><p class="muted">Loading the secure card form...</p></div>' +
-      '<button class="btn btn-primary" id="card-save" style="width:100%;margin-top:16px" disabled>Save card</button><div id="card-msg"></div>' +
-      '<p class="muted" style="font-size:.85rem;margin-bottom:0">Your card is kept safely by Stripe, our payment company. Show-Me Neighbors never sees or stores your full card number.</p></div>';
+      '<div class="cols"><div class="card"><div id="pay-el" style="min-height:120px"><p class="muted">Loading the secure card form...</p></div>' +
+      '<button class="btn btn-primary" id="card-save" style="width:100%;margin-top:16px" disabled>Save card</button><div id="card-msg"></div></div>' +
+      '<div class="card"><h2 style="margin-top:0">You will not be charged now</h2><ul class="steps-mini"><li><b>1</b><span>Save a card so you are ready to book.</span></li><li><b>2</b><span>After each visit is finished, we charge this card for that visit only.</span></li><li><b>3</b><span>You get an email receipt every time. Change or remove the card any time.</span></li></ul>' +
+      '<p class="muted" style="font-size:.9rem;margin-bottom:0">Your card is kept safely by Stripe, our payment company. Show-Me Neighbors never sees or stores your full card number.</p></div></div>';
   }
   var stripeJs = null, stripeEls = null;
   function loadStripeJs() {
