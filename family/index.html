@@ -291,10 +291,11 @@
   var realRec = null, sampleMode = false;
   function sampleRec() {
     var you = data.family.first_name + ' ' + data.family.last_name, lo = data.people[0] ? (data.people[0].preferred || data.people[0].first_name) + ' ' + data.people[0].last_name : 'Your loved one';
+    var P = (rec && rec.prices) || {}, RATE = +P.rate_day || 34, MILE = P.mile_rate == null ? 0.7 : +P.mile_rate;
     var y = String(new Date().getFullYear()), mk = function (n, d, a, b, svc, hrs, miles, disc) {
-      var t = hrs * 22, m = +(miles * 0.7).toFixed(2), sub = t + m, off = disc ? disc.amount : 0;
+      var t = hrs * RATE, m = +(miles * MILE).toFixed(2), sub = t + m, off = disc ? disc.amount : 0;
       return { number: 'SAMPLE-' + n, created_at: y + '-' + d + 'T' + b + ':00Z', loved_one_name: lo, visit_start: y + '-' + d + 'T' + a + ':00Z', visit_end: y + '-' + d + 'T' + b + ':00Z', neighbor_name: 'Carol B.', services: svc,
-        lines: [{ label: 'Visit time (weekday rate)', qty: hrs, unit: 'hours', rate: 22, amount: t }].concat(miles ? [{ label: 'Miles driven for errands and rides', qty: miles, unit: 'miles', rate: 0.7, amount: m }] : []),
+        lines: [{ label: 'Visit time (weekday rate)', qty: hrs, unit: 'hours', rate: RATE, amount: t }].concat(miles ? [{ label: 'Miles driven for errands and rides', qty: miles, unit: 'miles', rate: MILE, amount: m }] : []),
         subtotal: sub, discounts: disc ? [disc] : [], total: sub - off, paid_with: 'Visa ending 0000 (sample)', status: 'Paid', refunded: 0 };
     };
     return { year: y, years: [y], receipts: [mk('0003', '03-26', '15:00', '17:00', 'Company, Rides', 2, 8, { label: 'Gift card', amount: 20 }), mk('0002', '03-12', '19:00', '21:30', 'Doctor appointment, Errands', 2.5, 14, null), mk('0001', '02-26', '15:00', '17:00', 'Company, Games and hobbies', 2, 0, null)],
