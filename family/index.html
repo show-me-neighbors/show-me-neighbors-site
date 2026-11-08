@@ -62,7 +62,26 @@
   .savebar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; border-top: 1px solid var(--line); margin-top: 18px; padding-top: 16px; }
   .savebar .msg { margin: 0; }
   .contacts { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-  @media (max-width: 900px) { .cols, .dash, .pgrid, .grid-3 { grid-template-columns: 1fr; } .tabbar button { padding: 10px 12px; } }
+  .tablewrap { overflow-x: auto; }
+  .rtable, .itable { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  .rtable th, .rtable td, .itable th, .itable td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  .rtable th, .itable th { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+  .num { text-align: right !important; white-space: nowrap; }
+  .itable tfoot td { border-bottom: 0; }
+  .itable tr.tot td { font-weight: 900; font-size: 1.05rem; border-top: 2px solid var(--ink); }
+  .inv-head { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-bottom: 2px solid var(--ink); padding-bottom: 14px; margin-bottom: 14px; }
+  .inv-brand { font-family: "Nunito", sans-serif; font-weight: 900; font-size: 1.5rem; } .inv-brand span { color: var(--brick); font-weight: 600; }
+  .inv-meta { text-align: right; } .inv-title { font-family: "Nunito", sans-serif; font-weight: 900; font-size: 1.4rem; }
+  .inv-to { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+  @media (max-width: 900px) { .cols, .dash, .pgrid, .grid-3 { grid-template-columns: 1fr; } .tabbar button { padding: 10px 12px; } .inv-to { grid-template-columns: 1fr 1fr; } .inv-meta { text-align: left; } }
+  @media print {
+    body { background: #fff !important; }
+    .site-header, .tabbar, .noprint, .back { display: none !important; }
+    main { padding: 0 !important; } .box { max-width: none; }
+    .printcard { box-shadow: none !important; border: 0 !important; padding: 0 !important; }
+    .inv { break-inside: avoid; } .pagebreak { break-before: page; }
+    .printcard + .printcard { break-before: page; }
+  }
   .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 16px; }
   .card h2 { margin-top: 0; }
   .muted { color: var(--ink-soft); }
@@ -154,7 +173,7 @@
 
   // ---------- signed in: top tabs ----------
   var TABS = [['home', 'Home'], ['people', 'Loved ones'], ['pay', 'Payment'], ['me', 'Account']];
-  var TAB_OF = { home: 'home', people: 'people', person: 'people', contact: 'people', pay: 'pay', card: 'pay', me: 'me' };
+  var TAB_OF = { home: 'home', people: 'people', person: 'people', contact: 'people', pay: 'pay', card: 'pay', receipt: 'pay', statement: 'pay', me: 'me' };
   var ptab = 'basics';
   function tabbar() {
     return '<nav class="tabbar" aria-label="Your account">' + TABS.map(function (t) { return '<button data-v="' + t[0] + '" class="' + (TAB_OF[view] === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</nav>';
@@ -227,7 +246,68 @@
       '<div class="grid-2" style="align-items:start"><div class="card"><div class="eyebrow">Card on file</div>' + (cd
         ? '<p style="font-size:1.2rem;margin:6px 0 2px"><strong>' + e(cd.brand) + ' ending in ' + e(cd.last4) + '</strong></p><p class="muted" style="margin:0 0 14px">Expires ' + e(cd.exp) + '</p><button class="btn btn-ghost btn-small" data-v="card">Use a different card</button> <button class="linkbtn red" style="margin-left:14px" data-cardrm="1">Remove</button>'
         : '<p style="margin:6px 0 14px">No card yet. <strong>You will not be charged now.</strong></p><button class="btn btn-primary btn-small" data-v="card">Add a card</button>') + '</div>' +
-      '<div class="card"><div class="eyebrow">How paying works</div><ul class="steps-mini"><li><b>1</b><span>Save a card so you are ready to book.</span></li><li><b>2</b><span>After each visit, we charge the card for that visit only.</span></li><li><b>3</b><span>You get an email receipt every time.</span></li></ul><p class="muted small" style="margin:0">Your card is kept safely by Stripe. We never see or store your full card number.</p></div></div>';
+      '<div class="card"><div class="eyebrow">How paying works</div><ul class="steps-mini"><li><b>1</b><span>Save a card so you are ready to book.</span></li><li><b>2</b><span>After each visit, we charge the card for that visit only.</span></li><li><b>3</b><span>You get an email receipt every time.</span></li></ul><p class="muted small" style="margin:0">Your card is kept safely by Stripe. We never see or store your full card number.</p></div></div>' +
+      '<div class="card" style="margin-top:18px"><div class="headrow" style="margin-bottom:10px"><div><h2 style="margin:0">Receipts</h2><p class="muted small" style="margin:2px 0 0">A detailed receipt for every visit. Print one, or print a whole year for your taxes.</p></div><div id="rc-tools"></div></div><div id="rc-list"><p class="muted">Loading your receipts...</p></div></div>';
+  }
+  // ---------- receipts ----------
+  var rec = null, recOne = null;
+  function money(n) { return '$' + (Math.round(+n * 100) / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function dShort(iso) { return new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Chicago', month: 'short', day: 'numeric', year: 'numeric' }); }
+  function dLong(iso) { return new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Chicago', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }); }
+  function tShort(iso) { return new Date(iso).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' }); }
+  function net(r) { return (+r.total) - (+r.refunded || 0); }
+  async function loadReceipts(year) {
+    var r = await call('receipts', year ? { year: year } : {});
+    rec = r && r.ok ? r : null;
+    drawReceipts(r && !r.ok ? r.error : '');
+  }
+  function drawReceipts(err) {
+    var list = document.getElementById('rc-list'), tools = document.getElementById('rc-tools'); if (!list) return;
+    if (!rec) { list.innerHTML = '<div class="msg err">' + e(err || 'We could not load your receipts. Please try again in a minute.') + '</div>'; return; }
+    var yrs = rec.years.length ? rec.years : [rec.year];
+    tools.innerHTML = rec.receipts.length ? '<select id="rc-year" aria-label="Year" style="width:auto">' + yrs.map(function (y) { return '<option' + (y === rec.year ? ' selected' : '') + '>' + e(y) + '</option>'; }).join('') + '</select> <button class="btn btn-primary btn-small" data-v="statement">Print all for ' + e(rec.year) + '</button> <button class="btn btn-ghost btn-small" data-csv="1">Download spreadsheet</button>' : '';
+    if (!rec.receipts.length) { list.innerHTML = '<p class="muted" style="margin:0">No receipts yet. After your first visit, a detailed receipt shows up here and in your email.</p>'; return; }
+    list.innerHTML = '<div class="tablewrap"><table class="rtable"><thead><tr><th>Visit date</th><th>Receipt</th><th>Loved one</th><th>Neighbor</th><th class="num">Total</th><th>Status</th><th></th></tr></thead><tbody>' + rec.receipts.map(function (r, i) {
+      return '<tr><td>' + e(dShort(r.visit_start)) + '</td><td>' + e(r.number) + '</td><td>' + e(r.loved_one_name) + '</td><td>' + e(r.neighbor_name || '') + '</td><td class="num">' + money(net(r)) + '</td><td>' + (r.status === 'Paid' ? '<span class="chip ok">Paid</span>' : '<span class="chip">' + e(r.status) + '</span>') + '</td><td><button class="linkbtn" data-rc="' + i + '">View</button></td></tr>';
+    }).join('') + '</tbody></table></div><p class="small muted" style="margin:10px 0 0">' + rec.receipts.length + ' visit' + (rec.receipts.length === 1 ? '' : 's') + ' in ' + e(rec.year) + ', ' + money(rec.receipts.reduce(function (a, r) { return a + net(r); }, 0)) + ' total.</p>';
+  }
+  function invoice(r) {
+    var b = rec.business || {}, lines = r.lines || [], disc = r.discounts || [];
+    return '<div class="inv"><div class="inv-head"><div><div class="inv-brand">Show-Me <span>Neighbors</span></div><div class="small">' + e(b.name || '') + '<br>' + e(b.address || '') + '<br>' + e([b.email, b.phone].filter(Boolean).join(' · ')) + '</div></div>' +
+      '<div class="inv-meta"><div class="inv-title">Receipt</div><div class="small"><strong>' + e(r.number) + '</strong><br>Issued ' + e(dShort(r.created_at)) + '<br>' + e(r.status) + '</div></div></div>' +
+      '<div class="inv-to"><div><div class="eyebrow">Billed to</div>' + e(rec.family.name) + '<br><span class="small">' + e(rec.family.email) + '</span></div><div><div class="eyebrow">Visit for</div>' + e(r.loved_one_name) + '</div>' +
+      '<div><div class="eyebrow">Visit</div>' + e(dLong(r.visit_start)) + '<br><span class="small">' + e(tShort(r.visit_start)) + (r.visit_end ? ' to ' + e(tShort(r.visit_end)) : '') + '</span></div><div><div class="eyebrow">Neighbor</div>' + e(r.neighbor_name || '') + '</div></div>' +
+      (r.services ? '<p class="small" style="margin:0 0 10px"><strong>Help given:</strong> ' + e(r.services) + '</p>' : '') +
+      '<table class="itable"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead><tbody>' + lines.map(function (l) {
+        return '<tr><td>' + e(l.label) + '</td><td class="num">' + e(l.qty == null ? '' : l.qty + (l.unit ? ' ' + l.unit : '')) + '</td><td class="num">' + (l.rate == null ? '' : money(l.rate)) + '</td><td class="num">' + money(l.amount) + '</td></tr>';
+      }).join('') + '</tbody><tfoot><tr><td colspan="3">Subtotal</td><td class="num">' + money(r.subtotal) + '</td></tr>' +
+      disc.map(function (d) { return '<tr><td colspan="3">' + e(d.label) + '</td><td class="num">-' + money(Math.abs(d.amount)) + '</td></tr>'; }).join('') +
+      '<tr class="tot"><td colspan="3">Total paid</td><td class="num">' + money(r.total) + '</td></tr>' + (+r.refunded ? '<tr><td colspan="3">Refunded</td><td class="num">-' + money(r.refunded) + '</td></tr>' : '') + '</tfoot></table>' +
+      '<p class="small" style="margin:10px 0 0">Paid with ' + e(r.paid_with || 'card on file') + '.' + (r.note ? ' ' + e(r.note) : '') + '</p></div>';
+  }
+  function receiptScreen() {
+    return '<div class="noprint"><button class="back" data-v="pay">&larr; Payment</button><div class="headrow"><h1>Receipt ' + e(recOne.number) + '</h1><button class="btn btn-primary" data-print="1">Print or save as PDF</button></div></div><div class="card printcard">' + invoice(recOne) + '</div>';
+  }
+  function statementScreen() {
+    var b = rec.business || {}, rs = rec.receipts, tot = rs.reduce(function (a, r) { return a + (+r.total); }, 0), ref = rs.reduce(function (a, r) { return a + (+r.refunded || 0); }, 0);
+    var byPerson = {}; rs.forEach(function (r) { byPerson[r.loved_one_name] = (byPerson[r.loved_one_name] || 0) + net(r); });
+    return '<div class="noprint"><button class="back" data-v="pay">&larr; Payment</button><div class="headrow"><h1>' + e(rec.year) + ' year-end statement</h1><button class="btn btn-primary" data-print="1">Print or save as PDF</button></div></div>' +
+      '<div class="card printcard"><div class="inv"><div class="inv-head"><div><div class="inv-brand">Show-Me <span>Neighbors</span></div><div class="small">' + e(b.name || '') + '<br>' + e(b.address || '') + '<br>' + e([b.email, b.phone].filter(Boolean).join(' · ')) + (b.tax_id ? '<br>EIN ' + e(b.tax_id) : '') + '</div></div>' +
+      '<div class="inv-meta"><div class="inv-title">Year-end statement</div><div class="small"><strong>January 1 to December 31, ' + e(rec.year) + '</strong><br>Prepared ' + e(dShort(new Date().toISOString())) + '</div></div></div>' +
+      '<div class="inv-to"><div><div class="eyebrow">Prepared for</div>' + e(rec.family.name) + '<br><span class="small">' + e(rec.family.email) + '</span></div><div><div class="eyebrow">Visits</div>' + rs.length + '</div><div><div class="eyebrow">Total paid</div>' + money(tot) + '</div><div><div class="eyebrow">After refunds</div><strong>' + money(tot - ref) + '</strong></div></div>' +
+      '<table class="itable"><thead><tr><th>Visit for</th><th class="num">Paid in ' + e(rec.year) + '</th></tr></thead><tbody>' + Object.keys(byPerson).map(function (k) { return '<tr><td>' + e(k) + '</td><td class="num">' + money(byPerson[k]) + '</td></tr>'; }).join('') + '</tbody></table>' +
+      '<h3 style="margin:22px 0 8px">Every visit</h3><table class="itable"><thead><tr><th>Date</th><th>Receipt</th><th>Visit for</th><th>Neighbor</th><th>Help given</th><th class="num">Paid</th></tr></thead><tbody>' + rs.slice().reverse().map(function (r) {
+        return '<tr><td>' + e(dShort(r.visit_start)) + '</td><td>' + e(r.number) + '</td><td>' + e(r.loved_one_name) + '</td><td>' + e(r.neighbor_name || '') + '</td><td>' + e(r.services || '') + '</td><td class="num">' + money(net(r)) + '</td></tr>';
+      }).join('') + '</tbody><tfoot><tr class="tot"><td colspan="5">Total for ' + e(rec.year) + '</td><td class="num">' + money(tot - ref) + '</td></tr></tfoot></table>' +
+      '<p class="small muted" style="margin:14px 0 0">Show-Me Neighbors provides non-medical companionship, rides and errands. Keep this statement with your records. Ask your tax preparer whether any of these visits count toward a credit or deduction for you.</p></div></div>' +
+      '<h2 class="pagebreak" style="margin:26px 0 12px">Detailed receipts</h2>' + rs.slice().reverse().map(function (r) { return '<div class="card printcard" style="margin-bottom:14px">' + invoice(r) + '</div>'; }).join('');
+  }
+  function csvReceipts() {
+    var rows = [['Visit date', 'Receipt', 'Loved one', 'Neighbor', 'Help given', 'Subtotal', 'Discounts', 'Total paid', 'Refunded', 'Net paid', 'Paid with', 'Status']].concat(rec.receipts.slice().reverse().map(function (r) {
+      return [dShort(r.visit_start), r.number, r.loved_one_name, r.neighbor_name || '', r.services || '', (+r.subtotal).toFixed(2), (r.discounts || []).reduce(function (a, d) { return a + Math.abs(+d.amount); }, 0).toFixed(2), (+r.total).toFixed(2), (+r.refunded || 0).toFixed(2), net(r).toFixed(2), r.paid_with || '', r.status];
+    }));
+    var txt = rows.map(function (r) { return r.map(function (v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/csv' })); a.download = 'show-me-neighbors-receipts-' + rec.year + '.csv'; a.click();
   }
   function meScreen() {
     var f = data.family;
@@ -281,10 +361,12 @@
 
   function render(note) {
     if (!data) { app.innerHTML = startScreen(note); prefill(); return toggleNames(); }
-    var v = { home: homeScreen, people: peopleScreen, me: meScreen, person: personScreen, contact: contactScreen, pay: payScreen, card: cardScreen }[view] || homeScreen;
+    var v = { home: homeScreen, people: peopleScreen, me: meScreen, person: personScreen, contact: contactScreen, pay: payScreen, card: cardScreen, receipt: receiptScreen, statement: statementScreen }[view] || homeScreen;
+    if ((v === receiptScreen && !recOne) || (v === statementScreen && !rec)) { view = 'pay'; v = payScreen; }
     app.innerHTML = tabbar() + '<div class="tabbody">' + v(note) + '</div>';
     window.scrollTo(0, 0);
     if (v === cardScreen) mountCard();
+    if (v === payScreen) { if (rec) drawReceipts(); else loadReceipts(); }
   }
   function prefill() { var z = new URLSearchParams(location.search).get('zip'), el = document.getElementById('s-zip'); if (el && z && /^\d{5}$/.test(z) && !el.value) el.value = z; }
   function toggleNames() { var r = app.querySelector('[name=is_for]:checked'), b = document.getElementById('lo-names'); if (b && r) b.hidden = r.value === 'Me'; }
@@ -318,7 +400,7 @@
     render(r && !r.signin ? '<div class="msg err">' + e(r.error) + '</div>' : '');
   }
 
-  app.addEventListener('change', function (ev) { if (ev.target.name === 'is_for') toggleNames(); });
+  app.addEventListener('change', function (ev) { if (ev.target.name === 'is_for') toggleNames(); if (ev.target.id === 'rc-year') { document.getElementById('rc-list').innerHTML = '<p class="muted">Loading...</p>'; loadReceipts(ev.target.value); } });
   app.addEventListener('click', async function (ev) {
     var pt = ev.target.closest('[data-ptab]');
     if (pt) {
@@ -328,6 +410,12 @@
       var sb = app.querySelector('.savebar'); if (sb) sb.hidden = ptab === 'contacts';
       var pf = document.getElementById('pf'); if (pf) pf.hidden = ptab === 'contacts';
       return;
+    }
+    var rc = ev.target.closest('[data-rc],[data-print],[data-csv]');
+    if (rc) {
+      if (rc.dataset.rc) { recOne = rec.receipts[+rc.dataset.rc]; view = 'receipt'; return render(); }
+      if (rc.dataset.print) return window.print();
+      if (rc.dataset.csv) return csvReceipts();
     }
     var t = ev.target.closest('[data-v],[data-edit],[data-cedit],[data-del],[data-cdel],[data-cardrm]'); if (!t) return;
     if (t.dataset.cardrm) {
