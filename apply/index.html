@@ -150,7 +150,7 @@
     var h = '<h1 style="font-size:2rem;margin-top:0">Hi, ' + e(m.first) + '</h1>';
     if (st === 'Waitlist') return h + '<div class="card"><p>Thank you for applying! We are not taking Neighbors near ' + e(m.zip) + ' yet. Your application is saved, and we will email you as soon as we open in your area.</p></div>';
     if (st === 'Not a fit' || st === 'Withdrew') return h + '<div class="card"><p>Your application is closed. Thank you for your interest in helping older adults in your community.</p></div>';
-    if (st === 'Approved') return h + '<div class="card"><p><strong>You are approved!</strong> Welcome to Show-Me Neighbors. We will email you when the Neighbor app is ready for you to set your hours and take visits.</p></div>';
+    if (st === 'Approved' || st === 'Paused') return h + '<div class="card"><p><strong>You are approved!</strong> Welcome to Show-Me Neighbors.</p><a class="btn btn-primary" href="../neighbor/">Open the Neighbor app</a></div>';
     var items = [
       ['Application', 'Sent', true, ''],
       ['Video interview', st === 'Interview booked' ? fmtWhen(m.interview_at) + ' Central time' : (past ? 'Done' : 'Pick a time to meet us'), past, past ? '' : (st === 'Interview booked' ? 'interview-info' : 'interview')],
@@ -171,6 +171,7 @@
       return '<li><div class="dot ' + (it[2] ? 'done' : (i === first ? 'now' : '')) + '">' + (it[2] ? '&#10003;' : i + 1) + '</div><div style="flex:1"><strong>' + it[0] + '</strong><div class="muted">' + e(it[1]) + '</div>' +
         (it[3] ? '<button class="btn btn-primary btn-small" style="margin-top:8px" data-go="' + it[3] + '">' + label[it[3]] + '</button>' : '') + '</div></li>';
     }).join('') + '</ul></div>';
+    if (m.app) h += '<div class="card"><strong>Get a head start:</strong> set your free hours and your Neighbor profile now in the <a href="../neighbor/">Neighbor app</a>. You can start taking visits as soon as you are approved.</div>';
     if (st === 'Waiting on checks') h += '<div class="msg ok">Thank you! Once your bank account is added, the last step is your background check. We will email you when it is ready.</div>';
     return h;
   }

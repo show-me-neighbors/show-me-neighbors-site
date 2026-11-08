@@ -165,13 +165,17 @@
     h += list.length ? '<div class="tablewrap"><table><thead><tr><th>Applied</th><th>Who</th><th>Where</th><th>Where they are</th><th>Steps</th><th>Notes</th></tr></thead><tbody>' + list.map(function (n) {
       var stg = STAGE[n.status] || [n.status, ''], name = (n.preferred || n.legal_first) + ' ' + n.legal_last;
       var iv = n.status === 'Interview booked' ? '<div style="margin-top:6px"><strong>' + e(whenLong(n.interview_at)) + '</strong></div>' : '';
+      var acts2 = n.status === 'Waiting on checks' || n.status === 'Next steps' ? (n.checks_status !== 'Clear' ? '<div class="acts"><button class="go" data-ofc="checks" data-val="Clear" data-id="' + n.id + '">Checks clear</button><button class="no" data-ofc="checks" data-val="Needs review" data-id="' + n.id + '">Checks need review</button></div>' : '')
+        : n.status === 'Ready for approval' ? '<div class="acts"><button class="go" data-ofc="approve" data-id="' + n.id + '">Approve</button></div>'
+        : n.status === 'Approved' ? '<div class="small" style="margin-top:6px">' + (n.taking_visits ? '<span class="ok-line">Taking visits</span>' : 'Not taking visits right now') + '</div><div class="acts"><button data-ofc="pause" data-val="1" data-id="' + n.id + '">Pause</button></div>'
+        : n.status === 'Paused' ? '<div class="acts"><button class="go" data-ofc="pause" data-val="0" data-id="' + n.id + '">Unpause</button></div>' : '';
       var acts = (n.status === 'Interview booked' || n.status === 'Applied') ? '<div class="acts"><button class="go" data-res="Passed" data-id="' + n.id + '">Passed</button><button class="no" data-res="Not a fit" data-id="' + n.id + '">Not a fit</button>' + (n.status === 'Interview booked' ? '<button data-res="No-show" data-id="' + n.id + '">No-show</button>' : '') + '</div>' : '';
       var steps = [['Interview', n.interview_result ? n.interview_result : '-'], ['Course', n.course_passed_at ? n.course_score + ' of 5' : '-'], ['Agreement', n.agreement_signed_at ? 'Signed' : '-'], ['Checks', n.checks_status], ['Bank', n.bank_status]];
       return '<tr><td>' + when(n.created_at) + '</td><td><strong>' + e(name) + '</strong>' + (n.preferred ? '<div class="small muted">Legal: ' + e(n.legal_first + ' ' + n.legal_last) + '</div>' : '<br>') + e(n.email) + '<br>' + e(n.phone || '') +
         (n.email_note ? '<div class="msg err" style="margin-top:6px;padding:6px 8px;font-size:.8rem">' + e(n.email_note) + '</div>' : '') +
         '<details class="ans"><summary>Answers</summary><div class="det">' + [['Gender', n.gender], ['Hours', n.hours], ['Now doing', n.work], ['Free', (n.times || []).join(', ')], ['Carry groceries', n.carry ? 'Yes' : 'No'], ['Heard about us', n.heard], ['Why', n.why]].map(function (x) { return '<b>' + x[0] + ':</b> ' + e(x[1] || ''); }).join('<br>') + '</div></details></td>' +
         '<td>' + e(n.zip) + '<br><span class="' + (n.area === 'Not yet served' ? 'area-out' : 'muted') + '">' + e(n.area || '') + '</span></td>' +
-        '<td><span class="st ' + stg[1] + '">' + e(stg[0]) + '</span>' + iv + acts + '</td>' +
+        '<td><span class="st ' + stg[1] + '">' + e(stg[0]) + '</span>' + iv + acts + acts2 + '</td>' +
         '<td class="det">' + steps.map(function (x) { return '<b>' + x[0] + ':</b> ' + e(x[1]); }).join('<br>') + (n.status !== 'Waitlist' && n.status !== 'Not a fit' ? '<div class="acts"><button data-resend="' + n.id + '">Email them a fresh link</button></div>' : '') + '</td>' +
         '<td><textarea data-nn="' + n.id + '" placeholder="Interview notes...">' + e(n.notes || '') + '</textarea><div class="saved" id="sv-' + n.id + '"></div></td></tr>';
     }).join('') + '</tbody></table></div>' : '<div class="card">No applicants here yet.</div>';
@@ -308,6 +312,7 @@
     if (t.id === 'rf') return load();
     if (t.id === 'csv') return csv();
     if (t.dataset.res) return interviewResult(t);
+    if (t.dataset.ofc) return officeStep(t);
     if (t.dataset.resend) return resend(t);
     if (t.dataset.saveweek) {
       var wk = {}, bad = '';
@@ -327,6 +332,18 @@
     await loadApplicants();
     if (!r || !r.ok) return renderApplicants('<div class="msg err">' + e((r && r.error) || 'That did not save. Please try again.') + '</div>');
     renderApplicants('<div class="msg ' + (r.emailed ? 'ok' : 'err') + '">' + e(name) + ': ' + e(res) + '. ' + (r.emailed ? 'Their email was sent.' : 'The email did NOT send. See Emails.') + '</div>');
+  }
+  async function officeStep(t) {
+    var n = nbrs.filter(function (x) { return x.id === t.dataset.id; })[0], name = (n.preferred || n.legal_first) + ' ' + n.legal_last, kind = t.dataset.ofc, val = t.dataset.val;
+    var what = kind === 'approve' ? 'Approve ' + name + '? They get a welcome email and the Neighbor app.' : kind === 'checks' ? 'Mark ' + name + '\'s background and driving record checks as ' + val + '?' : (val === '1' ? 'Pause ' + name + '? They stop getting visit offers.' : 'Unpause ' + name + '?');
+    if (t.dataset.sure !== '1') { app.querySelectorAll('[data-sure="1"]').forEach(function (b) { b.dataset.sure = ''; }); t.dataset.sure = '1'; t.dataset.label = t.textContent; t.textContent = 'Click again to confirm'; var tip = document.createElement('div'); tip.className = 'small muted'; tip.style.marginTop = '6px'; tip.textContent = what; t.parentNode.appendChild(tip); return; }
+    t.disabled = true; t.textContent = 'Saving...';
+    var body = { id: n.id };
+    if (kind === 'checks') body.result = val;
+    if (kind === 'pause') body.paused = val === '1';
+    var r = await fn(kind, body);
+    await loadApplicants();
+    renderApplicants('<div class="msg ' + (r && r.ok ? 'ok' : 'err') + '">' + e(name) + ': ' + e(r && r.ok ? (kind === 'approve' ? (r.emailed ? 'approved, and their welcome email was sent.' : 'approved, but the welcome email did NOT send. See Emails.') : kind === 'checks' ? 'checks marked ' + val + '.' + (r.status === 'Ready for approval' ? ' They are now ready for approval.' : '') : (val === '1' ? 'paused.' : 'unpaused.')) : ((r && r.error) || 'That did not save.')) + '</div>');
   }
   async function resend(t) {
     t.disabled = true; t.textContent = 'Sending...';

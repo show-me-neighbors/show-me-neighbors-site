@@ -1,4 +1,5 @@
 User-agent: *
 Disallow: /office/
+Disallow: /neighbor/
 Allow: /
 Sitemap: https://showmeneighbors.com/sitemap.xml
