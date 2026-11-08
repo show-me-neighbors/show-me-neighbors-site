@@ -134,6 +134,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
+  // Which marketing post sent them (?from=CODE on the link, or remembered from the home page for 30 days).
+  function fromCode() {
+    var q = (new URLSearchParams(location.search).get('from') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
+    try { if (q) localStorage.setItem('smn-from', JSON.stringify({ c: q, t: Date.now() })); else { var o = JSON.parse(localStorage.getItem('smn-from') || 'null'); if (o && Date.now() - o.t < 30 * 864e5) q = o.c; } } catch (e) {}
+    return q;
+  }
+  fromCode();
 (function () {
   var SB_URL = 'https://ubsupoboukcpbklvdkkq.supabase.co';
   var SB_KEY = 'sb_publishable_02PKeFgkiaetde-La-uBKA_M9hhAHvG'; // public browser key; the server checks everything
@@ -598,7 +605,7 @@
     }
     if (f.id === 'sf') {
       var isFor = (f.querySelector('[name=is_for]:checked') || {}).value;
-      var body = { is_for: isFor, first_name: g('s-first'), last_name: g('s-last'), person_first: g('s-pfirst'), person_last: g('s-plast'), email: g('s-email'), phone: g('s-phone'), zip: g('s-zip'), heard: g('s-heard'), website: f.website.value };
+      var body = { is_for: isFor, first_name: g('s-first'), last_name: g('s-last'), person_first: g('s-pfirst'), person_last: g('s-plast'), email: g('s-email'), phone: g('s-phone'), zip: g('s-zip'), heard: g('s-heard'), source: fromCode(), website: f.website.value };
       var problem = !body.first_name || !body.last_name ? 'Please add your first and last name.' : (isFor !== 'Me' && !body.person_first) ? 'Please add the first name of the person the visits are for.' : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email) ? 'Please check your email address.' : !/^\d{5}$/.test(body.zip) ? 'Please add the 5-digit ZIP code where the visits will be.' : '';
       if (problem) return say('sf-msg', problem);
       busy(btn, 'Making your account...'); var r = await call('start', body); unbusy(btn);

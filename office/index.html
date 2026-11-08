@@ -15,7 +15,7 @@
   .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 14px; }
   .top .brand-name .w1 { color: #fff; } .top .brand-name .w2 { color: #a9cbe6; }
   .tag { background: rgba(255,255,255,.14); border-radius: 99px; padding: 3px 10px; font-size: .72rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; margin-left: 10px; }
-  .who { font-size: .9rem; opacity: .9; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .who { font-size: .9rem; opacity: .9; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; min-width: 0; overflow-wrap: anywhere; }
   .who button { background: none; border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 99px; padding: 5px 12px; font: inherit; font-weight: 800; cursor: pointer; }
   main { padding-block: 26px 60px; }
   .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); }
@@ -118,7 +118,7 @@
 
   // ---------- pages ----------
   var page = (location.hash.slice(1) || 'visits'), nbrs = [], msgs = [], sets = [], openId = '';
-  var PAGES = [['visits', 'Visits'], ['signups', 'Sign-ups'], ['families', 'Families'], ['applicants', 'Neighbor applicants'], ['emails', 'Emails'], ['settings', 'Settings']];
+  var PAGES = [['visits', 'Visits'], ['signups', 'Sign-ups'], ['families', 'Families'], ['applicants', 'Neighbor applicants'], ['marketing', 'Marketing'], ['emails', 'Emails'], ['settings', 'Settings']];
   function nav() {
     var failed = msgs.filter(function (m) { return m.status === 'Failed'; }).length;
     return '<nav class="pages">' + PAGES.map(function (p) { return '<a href="#' + p[0] + '" class="' + (page === p[0] ? 'on' : '') + '">' + p[1] + (p[0] === 'emails' && failed ? '<span class="badge">' + failed + ' failed</span>' : '') + '</a>'; }).join('') + '</nav>';
@@ -131,6 +131,7 @@
     if (page === 'visits') return loadVisits();
     if (page === 'emails') return renderEmails();
     if (page === 'settings') return loadSettings();
+    if (page === 'marketing') return loadMarketing();
     return loadSignups();
   }
   window.addEventListener('hashchange', function () { page = location.hash.slice(1) || 'visits'; if (me) load(); });
@@ -142,6 +143,119 @@
     } catch (x) { return { ok: false, error: 'Could not reach the server' }; }
   }
   function whenLong(iso) { return new Date(iso).toLocaleString('en-US', { timeZone: 'America/Chicago', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+
+  // ---------- Recruiting: ready-to-post ads, each with its own tracking link (?from=CODE) ----------
+  var SITE_APPLY = 'showmeneighbors.com/apply/?from=';
+  var POSTS = [
+    { code: 'job-post', where: 'Full job description (any job site: Indeed, ZipRecruiter, Facebook Jobs, college and church job boards)', tip: 'The complete description. Job title: Senior Companion and Driver (Flexible, Part-Time). Job type: Contract. Pay: $18 to $21 per hour. Location: Springfield, Branson and Table Rock Lake, or St. Charles County, Missouri.',
+      text: 'Senior Companion and Driver (Flexible, Part-Time)\nShow-Me Neighbors | Springfield, Branson and Table Rock Lake, and St. Charles County, Missouri\nPay: $18 to $21 an hour, paid weekly, plus mileage\n\nAbout Show-Me Neighbors\nShow-Me Neighbors connects kind, dependable local people with older adults who would love some company, a ride or a hand with errands. Families book visits through our app, and our Neighbors choose the visits that fit their week. For a lot of the people we serve, a Neighbor\'s visit is the best part of the week.\n\nAbout the role\nAs a Neighbor, you are a friendly visitor, a driver and an extra pair of hands. You set the days and times you are free in our app, see visit offers near you, and accept only the ones you want. Visits are at least one hour, and many are two or three. Families who enjoy your visits can mark you as a favorite, so their next visits are offered to you first.\n\nWhat you will do\n- Keep an older adult company: conversation, cards and games, puzzles, walks, hobbies\n- Drive them to appointments, the salon, church, lunch out or a visit with friends\n- Run errands together or for them: groceries, the pharmacy, the post office\n- Help around the house with light tasks like tidying up, laundry or making a simple meal\n- Help with phones, tablets and video calls with family\n- Clock in and out in our app and leave a short note for the family after each visit\n\nWhat Neighbors never do\nNeighbors give everyday help only. You will never give personal or medical care: no bathing, dressing, grooming, help in the bathroom, feeding, lifting or transferring someone, wound care or medication. If a visit ever needs that, you let us know and we take it from there.\n\nPay\n- $18 an hour on weekdays\n- $21 an hour on evenings and weekends\n- Paid every week by direct deposit\n- 100% of the miles you drive during a visit (rides and errands), at the IRS rate of 76 cents a mile\n\nSchedule\nCompletely flexible. Work a few hours a week or a lot more. You choose your hours and the visits you take. Hours are not guaranteed, so this is a great fit if you want to set your own schedule.\n\nWhat you need\n- 21 or older\n- A valid driver\'s license and a reliable car insured in your name\n- A smartphone\n- A kind, patient, dependable nature and a love for older adults\n- Agreement to a criminal background check and driving record check (we pay for them up front)\n- No healthcare experience or license needed. Our short online course covers what you need.\n\nWho does well as a Neighbor\nRetirees, parents with school-day hours, college students, people between jobs, and anyone who wants meaningful part-time work close to home.\n\nHow to apply\n1. Apply online in about 5 minutes\n2. Pick a time for a friendly 20-minute video interview\n3. Finish a short online course and sign the Neighbor agreement\n4. Complete your background and driving record checks and add your bank account\n5. Start accepting visits near you\n\nNeighbors work as independent contractors and receive a 1099 at tax time.\n\nApply here: {link}' },
+    { code: 'fb-group-sgf', where: 'Facebook group, Springfield', tip: 'Post once in each local group that allows job posts. Add a warm photo if you have one.',
+      text: 'Springfield neighbors: do you have a few free hours a week and a soft spot for older adults?\n\nShow-Me Neighbors is a new Missouri company that sends friendly local people to keep seniors company, drive them to appointments and run errands. No nursing, no lifting, no personal care. Just being a good neighbor.\n\n- $18 an hour weekdays, $21 evenings and weekends\n- Paid every week, plus 100% of your visit mileage (76 cents a mile)\n- You pick your own hours and only take the visits you want\n- No healthcare experience needed\n\nYou need to be 21 or older with a driver\'s license and an insured car. Applying takes about 5 minutes, then a friendly 20-minute video interview.\n\nApply here: {link}' },
+    { code: 'fb-group-branson', where: 'Facebook group, Branson and Table Rock Lake', tip: 'Same post, Branson link.', same: 'fb-group-sgf', swap: ['Springfield neighbors:', 'Branson and Table Rock Lake neighbors:'] },
+    { code: 'fb-group-stc', where: 'Facebook group, St. Charles County', tip: 'Same post, St. Charles link.', same: 'fb-group-sgf', swap: ['Springfield neighbors:', 'St. Charles County neighbors:'] },
+    { code: 'fb-page', where: 'Show-Me Neighbors Facebook page', tip: 'Pin this to the top of the page so anyone who finds us sees it first.',
+      text: 'We are looking for our first Show-Me Neighbors!\n\nFor a lot of older adults, a visit from a friendly face is the best part of the week. Our Neighbors keep them company, drive them to the doctor, the salon or church, and help with groceries and errands.\n\nIf you are kind, dependable and like spending time with older adults, we would love to meet you. Retirees, parents with school-day hours and anyone who wants meaningful part-time work are all welcome.\n\n- $18 an hour weekdays, $21 evenings and weekends, paid weekly\n- Every cent of your visit mileage, at 76 cents a mile\n- Your schedule, your call, right from the app\n- Now in Springfield, Branson and Table Rock Lake, and St. Charles County\n\nApply in about 5 minutes: {link}' },
+    { code: 'nextdoor', where: 'Nextdoor', tip: 'One post in the Jobs or General section. Title: Looking for kind neighbors to visit local seniors (paid, flexible)',
+      text: 'Hi neighbors! I am starting Show-Me Neighbors here in Missouri. We match friendly local people with older adults who would love some company, a ride to an appointment or a hand with errands.\n\nIt is paid, part-time and flexible: $18 an hour on weekdays, $21 on evenings and weekends, paid every week, and you keep 100% of the mileage you drive during visits. You choose your own hours. No medical experience needed, and there is never any personal care or lifting.\n\nYou need to be 21 or older with a driver\'s license and an insured car. If you or someone you know would be great at this, you can apply here: {link}\n\nThank you for helping me spread the word!\nSamantha' },
+    { code: 'indeed', where: 'Indeed', tip: 'One listing per area. Job type Contract, pay $18 to $21 per hour, send applicants to an outside website (this link). Title: Senior Companion and Driver, Flexible Part-Time. Best added once Checkr is set up.',
+      text: 'Show-Me Neighbors connects kind local people with older adults who would love company, rides and help with errands. Set your own hours, take only the visits you want, and get paid every week.\n\nWhat you will do\n- Keep an older adult company: talk, play cards, take a walk, work a puzzle\n- Drive them to appointments, the salon, church or lunch out\n- Run errands: groceries, the pharmacy, the post office\n- Leave a short note for the family after each visit in our app\n\nThis is everyday help only. Neighbors never give personal or medical care: no bathing, dressing, toileting, lifting or medication.\n\nPay\n- $18 an hour weekdays, $21 an hour evenings and weekends\n- Paid weekly by direct deposit\n- 100% of the miles you drive during visits, at the IRS rate of 76 cents a mile\n\nWhat you need\n- 21 or older\n- A driver\'s license and a reliable car insured in your name\n- A smartphone\n- A background check and driving record check (we pay up front)\n\nHow it works: apply in about 5 minutes, pick a time for a 20-minute video interview, finish a short online course, and start taking visits near you. Neighbors work as independent contractors.\n\nApply: {link}' },
+    { code: 'craigslist', where: 'Craigslist', tip: 'Post under gigs (free) or jobs (small fee). Springfield covers Branson and Table Rock Lake; St. Louis covers St. Charles County. Repost every 30 days. Title: Paid companion for seniors, $18 to $21/hr, your own schedule',
+      text: 'Show-Me Neighbors is hiring friendly, dependable people to visit older adults near you. Keep someone company, drive them to appointments and run errands. No medical experience needed and no personal care, ever.\n\n- $18/hr weekdays, $21/hr evenings and weekends, paid weekly\n- You keep 100% of visit mileage (76 cents a mile)\n- Choose your own hours in our app\n- 21+, driver\'s license and insured car required\n\nApply online in about 5 minutes: {link}' },
+    { code: 'church', where: 'Church bulletin or community board', tip: 'Short enough for a Sunday bulletin, library or senior center board. Ask the church office first.',
+      text: 'Love older adults? Get paid to be a good neighbor.\n\nShow-Me Neighbors is looking for kind, dependable people to visit seniors in our community: company, rides to appointments and help with errands. Flexible hours, $18 to $21 an hour, paid weekly, plus mileage. 21 or older with a car. Apply at {link}' },
+    { code: 'friend', where: 'Text to friends and family', tip: 'Ask them to pass it along. People you know are often the best Neighbors.',
+      text: 'Hi! I started a new company called Show-Me Neighbors. We pay kind local people to visit older adults: company, rides and errands, on their own schedule. $18 to $21 an hour, paid weekly. Do you know anyone who would be great at it? They can apply here: {link}' }
+  ];
+  var SITE_HOME = 'showmeneighbors.com/?from=';
+  var FAM_POSTS = [
+    { code: 'fam-fb-page', where: 'Show-Me Neighbors Facebook page', tip: 'Pin this to the top of the page. Add a warm photo of an older adult with a friendly helper.',
+      text: 'Does your mom or dad need a little help, or just some good company?\n\nShow-Me Neighbors sends friendly, checked local helpers to spend time with older adults: conversation and cards, rides to the doctor or the salon, groceries and errands, a simple meal and a little tidying.\n\n- Every Neighbor is interviewed, background-checked and driving-record checked\n- $34 an hour weekdays, $38 evenings and weekends, 1-hour minimum\n- No contracts, ever. Book one visit or a weekly visit\n- A short note from your Neighbor after every visit, so you know how the day went\n\nNow in Springfield, Branson and Table Rock Lake, and St. Charles County.\n\nMake a free account in about 2 minutes: {link}' },
+    { code: 'fam-fb-group-sgf', where: 'Facebook group, Springfield', tip: 'Community and town groups, caregiver and "aging parents" groups. Check each group\'s rules on business posts first.',
+      text: 'Springfield families: if you are juggling work and checking on an aging parent, this might help.\n\nShow-Me Neighbors is a new Missouri company. We send kind, checked local Neighbors to keep older adults company, drive them to appointments, run errands and help around the house. No contracts, and you get a short note after every visit.\n\n$34 an hour on weekdays, $38 on evenings and weekends.\n\nSee if we serve your area: {link}' },
+    { code: 'fam-fb-group-branson', where: 'Facebook group, Branson and Table Rock Lake', tip: 'Same post, Branson link.', same: 'fam-fb-group-sgf', swap: ['Springfield families:', 'Branson and Table Rock Lake families:'] },
+    { code: 'fam-fb-group-stc', where: 'Facebook group, St. Charles County', tip: 'Same post, St. Charles link.', same: 'fam-fb-group-sgf', swap: ['Springfield families:', 'St. Charles County families:'] },
+    { code: 'fam-nextdoor', where: 'Nextdoor', tip: 'Business or General post. Title: Friendly help for older neighbors (company, rides, errands)',
+      text: 'Hi neighbors! I started Show-Me Neighbors to help older adults stay happy and independent at home. Our Neighbors are checked local people who stop by for company, rides to appointments, groceries and errands, and a little help around the house.\n\nNo contracts. $34 an hour on weekdays and $38 on evenings and weekends, with a short note to the family after every visit.\n\nIf your parents or an older neighbor could use a friendly visit, you can make a free account here: {link}\n\nSamantha' },
+    { code: 'fam-church', where: 'Church bulletin, senior center or library board', tip: 'Short enough for a bulletin. Senior centers, libraries, pharmacies and doctor offices often have a community board.',
+      text: 'A friendly visit can make the whole week better.\n\nShow-Me Neighbors sends kind, checked local helpers to older adults for company, rides to appointments, groceries and errands. No contracts. $34 an hour. Learn more at {link}' },
+    { code: 'fam-friend', where: 'Text to friends and family', tip: 'Many families find help through someone they know. Ask them to pass it along.',
+      text: 'Hi! I started a new company called Show-Me Neighbors. We send friendly, checked local Neighbors to visit older adults: company, rides, errands and a little help at home. No contracts. If you know a family who could use a hand with mom or dad, here is the link: {link}' }
+  ];
+  function postText(p, list, site) {
+    list = list || POSTS; site = site || SITE_APPLY;
+    var base = p.same ? list.filter(function (x) { return x.code === p.same; })[0] : p, t = base.text;
+    if (p.swap) t = t.replace(p.swap[0], p.swap[1]);
+    return t.replace('{link}', site + p.code);
+  }
+  async function copyText(t, btn) {
+    var ok = false;
+    try { await navigator.clipboard.writeText(t); ok = true; } catch (x) {
+      var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+      try { ok = document.execCommand('copy'); } catch (y) {} ta.remove();
+    }
+    var was = btn.textContent; btn.textContent = ok ? 'Copied!' : 'Select and copy by hand'; setTimeout(function () { btn.textContent = was; }, 1800);
+  }
+  var mkTab = 'families';
+  function postCards(list, site) {
+    return list.map(function (p, i) { return '<div class="card rec" style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline"><h3 style="margin:0;font-size:1.1rem">' + e(p.where) + '</h3>' +
+      '<div class="acts" style="margin:0"><button class="go" data-copy="' + i + '">Copy post</button><button data-copylink="' + i + '">Copy link only</button></div></div>' +
+      '<p class="muted small" style="margin:6px 0 10px">' + e(p.tip) + '</p>' +
+      '<pre style="white-space:pre-wrap;font:inherit;font-size:.92rem;background:#f5f8fc;border:1px solid var(--line);border-radius:12px;padding:14px;margin:0;max-height:260px;overflow:auto">' + e(postText(p, list, site)) + '</pre></div>'; }).join('');
+  }
+  function wireCopy(list, site) {
+    app.querySelectorAll('[data-copy]').forEach(function (b) { b.onclick = function () { copyText(postText(list[+b.dataset.copy], list, site), b); }; });
+    app.querySelectorAll('[data-copylink]').forEach(function (b) { b.onclick = function () { copyText('https://' + site + list[+b.dataset.copylink].code, b); }; });
+  }
+  function mkHead() {
+    return nav() + '<h1 style="font-size:1.9rem;margin-bottom:0">Marketing</h1><p class="muted" style="margin:4px 0 0">Ready-to-post ads. Each one has its own link, so you can see which posts bring people in. Copy the whole post; the link is already in it.</p>' +
+      '<div class="bar tabs" style="margin-top:16px"><button data-mk="families" class="' + (mkTab === 'families' ? 'on' : '') + '">For families</button><button data-mk="neighbors" class="' + (mkTab === 'neighbors' ? 'on' : '') + '">Recruiting Neighbors</button></div>';
+  }
+  function wireTabs() { app.querySelectorAll('[data-mk]').forEach(function (b) { b.onclick = function () { mkTab = b.dataset.mk; loadMarketing(); }; }); }
+  function sourceTable(rows, label, cols) {
+    var by = {};
+    rows.forEach(function (n) { var k = n.source || '(no post link)'; by[k] = by[k] || cols.map(function () { return 0; }); cols.forEach(function (c, i) { if (c[1](n)) by[k][i]++; }); });
+    var keys = Object.keys(by).sort(function (a, b) { return by[b][0] - by[a][0]; });
+    return '<h2 style="font-size:1.25rem;margin:22px 0 10px">Which posts are working</h2>' + (keys.length ? '<div class="tablewrap"><table style="min-width:520px"><thead><tr><th>Post</th>' + cols.map(function (c) { return '<th>' + c[0] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      keys.map(function (k) { return '<tr><td>' + e(label[k] || k) + '</td>' + by[k].map(function (v) { return '<td>' + v + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>'
+      : '<div class="card muted">Nobody yet. Once people come from a post link, each post shows here.</div>');
+  }
+  async function loadMarketing() {
+    if (mkTab === 'families') {
+      var fr = await sb.from('families').select('source, card_last4');
+      var lab = {}; FAM_POSTS.forEach(function (p) { lab[p.code] = p.where; });
+      app.innerHTML = mkHead() + sourceTable(fr.error ? [] : fr.data, lab, [['Made an account', function () { return true; }], ['Added a card', function (f) { return !!f.card_last4; }]]) +
+        '<h2 style="font-size:1.25rem;margin:26px 0 10px">Posts to copy</h2><p class="muted" style="margin:0 0 12px">These send families to the home page, where they check their ZIP and make a free account.</p>' + postCards(FAM_POSTS, SITE_HOME);
+      wireTabs(); wireCopy(FAM_POSTS, SITE_HOME); return;
+    }
+    return loadRecruiting();
+  }
+  async function loadRecruiting() {
+    var r = await sb.from('neighbors').select('source, status');
+    var rows = r.error ? [] : r.data, by = {};
+    rows.forEach(function (n) { var k = n.source || '(no post link)'; by[k] = by[k] || { all: 0, passed: 0, approved: 0 }; by[k].all++;
+      if (['Next steps', 'Waiting on checks', 'Ready for approval', 'Approved', 'Paused'].indexOf(n.status) >= 0) by[k].passed++;
+      if (n.status === 'Approved') by[k].approved++; });
+    var label = {}; POSTS.forEach(function (p) { label[p.code] = p.where; });
+    var keys = Object.keys(by).sort(function (a, b) { return by[b].all - by[a].all; });
+    var h = mkHead() +
+      '<h2 style="font-size:1.25rem;margin:22px 0 10px">Which posts are working</h2>' +
+      (keys.length ? '<div class="tablewrap"><table style="min-width:520px"><thead><tr><th>Post</th><th>Applied</th><th>Passed interview</th><th>Approved</th></tr></thead><tbody>' +
+        keys.map(function (k) { return '<tr><td>' + e(label[k] || k) + '</td><td>' + by[k].all + '</td><td>' + by[k].passed + '</td><td>' + by[k].approved + '</td></tr>'; }).join('') + '</tbody></table></div>'
+        : '<div class="card muted">No applicants yet. Once people apply from a post link, each post shows here with how many applied, passed and were approved.</div>') +
+      '<h2 style="font-size:1.25rem;margin:26px 0 10px">Posts to copy</h2><p class="muted" style="margin:0 0 12px">Start with the free local places: your Facebook page, 2 or 3 Facebook groups per area, Nextdoor, and a text to 10 friends. Add Indeed once Checkr is set up.</p>' +
+      postCards(POSTS, SITE_APPLY) +
+      '<div class="card"><h3 style="margin:0 0 8px;font-size:1.1rem">Answers when people ask</h3>' +
+      [['Is this a job or contract work?', 'Neighbors are independent contractors. You choose your hours and visits, and you get a 1099 at tax time.'],
+       ['Does the background check cost me anything?', 'Applying is free and we pay for the checks up front. $7 comes out of each of your first visits until $35 is covered, and we pay it all back after your 10th visit.'],
+       ['Do I need experience?', 'No. Our short online course covers what you need.'],
+       ['Are hours guaranteed?', 'No. It is flexible work. You take the visits you want, and families who like you can book you again first.'],
+       ['Is my drive to a visit paid?', 'Miles during a visit (rides and errands) are paid at 76 cents a mile, and every cent goes to you. The drive to and from a visit is not paid.'],
+       ['Will I help with bathing or lifting?', 'Never. Neighbors give everyday help only: company, rides and errands.'],
+       ['When are interviews?', 'Tuesdays and Thursdays, 11 to 2 and 6 to 7:30 Central, by video. Applicants pick their own time.']]
+        .map(function (q) { return '<p style="margin:10px 0 0"><strong>' + e(q[0]) + '</strong><br>' + e(q[1]) + '</p>'; }).join('') + '</div>';
+    app.innerHTML = h;
+    wireTabs(); wireCopy(POSTS, SITE_APPLY);
+  }
 
   // ---------- Neighbor applicants ----------
   var nStatus = 'open';
