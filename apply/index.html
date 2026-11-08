@@ -156,10 +156,10 @@
       ['Onboarding course and quiz', m.course_passed ? 'Passed (' + m.course_score + ' of 5)' : (past ? 'About 15 minutes' : 'Opens after your interview'), m.course_passed, past && !m.course_passed ? 'course' : ''],
       ['Neighbor agreement', m.agreement_signed ? 'Signed' : (past ? 'Read and sign' : 'Opens after your interview'), m.agreement_signed, past && !m.agreement_signed ? 'agreement' : ''],
       ['Background and driving record checks', m.checks_status === 'Clear' ? 'All clear' : (past ? 'Opening soon. We will email you when this step is ready.' : 'Opens after your interview'), m.checks_status === 'Clear', ''],
-      ['Bank account for weekly pay', m.bank_status === 'Added' ? 'Added' : (past ? 'Opening soon. We will email you when this step is ready.' : 'Opens after your interview'), m.bank_status === 'Added', '']
+      ['Bank account for weekly pay', m.bank_status === 'Added' ? 'Added. You are all set to get paid.' : m.bank_status === 'Being checked by Stripe' ? 'Sent. Stripe is checking it, which usually takes a day or two.' : (past ? 'About 5 minutes on Stripe\'s secure page. Have your bank account and routing numbers and your Social Security number handy for your 1099.' : 'Opens after your interview'), m.bank_status === 'Added', past && m.bank_status !== 'Added' && m.bank_status !== 'Being checked by Stripe' ? 'bank' : '']
     ];
     var first = -1; items.forEach(function (it, i) { if (!it[2] && first < 0) first = i; });
-    var label = { interview: 'Pick a time', 'interview-info': 'See details or change', course: 'Start the course', agreement: 'Read and sign' };
+    var label = { interview: 'Pick a time', 'interview-info': 'See details or change', course: 'Start the course', agreement: 'Read and sign', bank: m.bank_status === 'Started' ? 'Finish on Stripe' : 'Add my bank account' };
     h += '<p class="muted">Here is where your application stands.</p>' + (note || '');
     if (st === 'Interview booked') {
       h += '<div class="card"><h2>Your video interview</h2><p style="font-size:1.2rem"><strong>' + e(fmtWhen(m.interview_at)) + '</strong> Central time</p>' +
@@ -170,7 +170,7 @@
       return '<li><div class="dot ' + (it[2] ? 'done' : (i === first ? 'now' : '')) + '">' + (it[2] ? '&#10003;' : i + 1) + '</div><div style="flex:1"><strong>' + it[0] + '</strong><div class="muted">' + e(it[1]) + '</div>' +
         (it[3] ? '<button class="btn btn-primary btn-small" style="margin-top:8px" data-go="' + it[3] + '">' + label[it[3]] + '</button>' : '') + '</div></li>';
     }).join('') + '</ul></div>';
-    if (st === 'Waiting on checks') h += '<div class="msg ok">Thank you! You have done everything you can for now. We will email you when the checks and bank steps open.</div>';
+    if (st === 'Waiting on checks') h += '<div class="msg ok">Thank you! Once your bank account is added, the last step is your background check. We will email you when it is ready.</div>';
     return h;
   }
   function timesScreen(note) {
@@ -229,6 +229,8 @@
 
   async function start() {
     var c = await call('config'); cfg = (c && c.settings) || {};
+    var bankBack = new URLSearchParams(location.search).get('bank');
+    if (bankBack) history.replaceState(null, '', location.pathname);
     var t = new URLSearchParams(location.search).get('t');
     if (t) {
       history.replaceState(null, '', location.pathname);
@@ -238,12 +240,18 @@
     }
     var s = (await sb.auth.getSession()).data.session;
     if (!s) return render();
-    loadMe();
+    loadMe(bankBack === 'back' ? '<div class="msg ok">Thanks! We got you back from Stripe. Your bank step is updated below.</div>' : bankBack === 'again' ? '<div class="msg info">That Stripe link timed out. Tap the bank step below to pick up where you left off.</div>' : '');
   }
 
   app.addEventListener('input', function (ev) { if (ev.target.id === 'a-why') { var c = document.getElementById('why-count'); if (c) c.textContent = ev.target.value.trim().length + ' of ' + (cfg.why_min_chars || 150); } });
   app.addEventListener('click', async function (ev) {
     var t = ev.target.closest('[data-go],[data-slot],[data-cancel]'); if (!t) return;
+    if (t.dataset.go === 'bank') {
+      busy(t, 'Opening Stripe...');
+      var b = await call('bank');
+      if (b && b.ok && b.url) { location.href = b.url; return; }
+      unbusy(t); return render('<div class="msg err">' + e((b && b.error) || 'We could not open Stripe. Please try again in a minute.') + '</div>');
+    }
     if (t.dataset.go) { view = t.dataset.go; return render(); }
     if (t.dataset.slot) {
       app.querySelectorAll('.slots button').forEach(function (b) { b.disabled = true; }); busy(t, 'Booking...');
