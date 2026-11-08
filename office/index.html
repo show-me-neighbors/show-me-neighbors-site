@@ -303,7 +303,7 @@
         ? '<video src="/assets/videos/' + p.video + '.mp4" poster="/assets/videos/' + p.video + '.jpg" controls preload="none" playsinline style="flex:0 0 150px;width:150px;border-radius:10px;display:block;background:#13204b"></video>'
         : '<a href="' + e(p.link) + '" target="_blank" style="flex:0 0 150px;width:150px;min-height:120px;border-radius:10px;background:#eef4fa;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:.85rem;font-weight:700">Link post<br>(Facebook shows the page picture)</a>';
       return '<div class="card rec" style="margin-bottom:14px"><div style="display:flex;gap:16px;flex-wrap:wrap">' + media +
-        '<div style="flex:1 1 260px;min-width:0"><div class="muted small">' + (p.audience === 'family' ? 'For families' : 'Recruiting Neighbors') + (p.video ? ' &middot; <b>Reel</b>' : '') + '</div>' +
+        '<div style="flex:1 1 260px;min-width:0"><div class="muted small">' + (p.scheduled ? new Date(p.scheduled).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Chicago' }) + ' &middot; ' : '') + (p.audience === 'family' ? 'For families' : 'Recruiting Neighbors') + (p.video ? ' &middot; <b>Reel</b>' : '') + '</div>' +
         '<h3 style="margin:2px 0 8px;font-size:1.1rem">' + e(p.theme) + '</h3>' +
         '<pre style="white-space:pre-wrap;font:inherit;font-size:.92rem;background:#f5f8fc;border:1px solid var(--line);border-radius:12px;padding:14px;margin:0;max-height:240px;overflow:auto">' + e(gdoText(p, 'fb')) + '</pre>' +
         '<div class="acts"><button class="go" data-gfb="' + i + '">Copy for Facebook</button><button data-gig="' + i + '">Copy for Instagram</button>' +
@@ -312,7 +312,7 @@
     }
     app.innerHTML = mkHead() +
       '<div class="card" style="margin-top:16px"><h3 style="margin:0 0 6px;font-size:1.1rem">' + reels.length + ' Reels and ' + posts.length + ' posts for the Good Days Out page</h3>' +
-      '<p class="muted small" style="margin:0">Drafts, not scheduled yet. Reels are 1080 x 1920 with your voice, for Facebook and Instagram Reels. Each post has its own link, so the For families and Recruiting Neighbors tabs show which ones bring people in. <a href="/good-days-out/" target="_blank">Open Good Days Out</a></p></div>' +
+      '<p class="muted small" style="margin:0">All scheduled on the Show-Me Neighbors Facebook Page through Blotato (posts 2pm, Reels 6pm Central). The copy buttons are for Instagram or anywhere else. Reels are 1080 x 1920 with your voice, for Facebook and Instagram Reels. Each post has its own link, so the For families and Recruiting Neighbors tabs show which ones bring people in. <a href="/good-days-out/" target="_blank">Open Good Days Out</a></p></div>' +
       '<h2 style="font-size:1.25rem;margin:22px 0 10px">Reels</h2>' + reels.map(card).join('') +
       '<h2 style="font-size:1.25rem;margin:22px 0 10px">Posts</h2>' + posts.map(card).join('');
     wireTabs();
