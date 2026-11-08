@@ -59,7 +59,7 @@
 (function () {
   var SB_URL = 'https://ubsupoboukcpbklvdkkq.supabase.co';
   var SB_KEY = 'sb_publishable_02PKeFgkiaetde-La-uBKA_M9hhAHvG'; // public browser key; the server checks every step
-  var sb = supabase.createClient(SB_URL, SB_KEY);
+  var sb = supabase.createClient(SB_URL, SB_KEY, { auth: { storageKey: 'smn-apply-auth' } }); // own sign-in, separate from the office and other pages
   var app = document.getElementById('app'), whoEl = document.getElementById('who');
   var cfg = {}, me = null, times = [], view = 'steps';
 
