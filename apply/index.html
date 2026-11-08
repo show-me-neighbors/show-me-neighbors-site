@@ -56,6 +56,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
+  // Which recruiting post sent them (?from=CODE on the link). Remembered for 30 days in case they come back later.
+  function fromCode() {
+    var q = (new URLSearchParams(location.search).get('from') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
+    try { if (q) localStorage.setItem('smn-from', JSON.stringify({ c: q, t: Date.now() })); else { var o = JSON.parse(localStorage.getItem('smn-from') || 'null'); if (o && Date.now() - o.t < 30 * 864e5) q = o.c; } } catch (e) {}
+    return q;
+  }
+  fromCode();
 (function () {
   var SB_URL = 'https://ubsupoboukcpbklvdkkq.supabase.co';
   var SB_KEY = 'sb_publishable_02PKeFgkiaetde-La-uBKA_M9hhAHvG'; // public browser key; the server checks every step
@@ -283,7 +290,7 @@
       var pick = function (n) { var x = f.querySelector('[name="' + n + '"]:checked'); return x ? x.value : ''; };
       var body = { legal_first: g('a-first'), legal_last: g('a-last'), preferred: g('a-pref'), gender: pick('gender'), zip: g('a-zip'), phone: g('a-phone'), email: g('a-email'),
         hours: g('a-hours'), work: g('a-work'), times: Array.prototype.map.call(f.querySelectorAll('[name=times]:checked'), function (c) { return c.value; }),
-        car: pick('car') === 'Yes', carry: pick('carry') === 'Yes', why: g('a-why'), heard: g('a-heard'), age_ok: document.getElementById('a-age').checked, website: f.website.value };
+        car: pick('car') === 'Yes', carry: pick('carry') === 'Yes', why: g('a-why'), heard: g('a-heard'), source: fromCode(), age_ok: document.getElementById('a-age').checked, website: f.website.value };
       var problem = !body.legal_first || !body.legal_last ? 'Please add your legal first and last name.' : !/^\d{5}$/.test(body.zip) ? 'Please add your 5-digit ZIP code.' : !body.phone ? 'Please add your mobile phone.' : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email) ? 'Please check your email address.' :
         !body.gender ? 'Please tell us if you are a man or a woman.' : pick('car') !== 'Yes' ? 'Neighbors need a driver\'s license and an insured car for rides and errands.' : body.why.length < (cfg.why_min_chars || 150) ? 'Please tell us a little more about why you would like to be a Neighbor (at least ' + (cfg.why_min_chars || 150) + ' letters).' : !body.age_ok ? 'Neighbors need to be at least ' + (cfg.min_age || 21) + ' years old.' : '';
       if (problem) return say('af-msg', problem);

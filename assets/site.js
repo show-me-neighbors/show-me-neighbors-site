@@ -3,6 +3,9 @@
   // Where sign-ups go. If this is ever empty, forms show an error instead of pretending to save.
   var SIGNUP_URL = 'https://ubsupoboukcpbklvdkkq.supabase.co/functions/v1/signup'; // Supabase "signup" function -> office portal Sign-ups
 
+  // Remember a recruiting post code (?from=CODE) so the application can say which post brought someone, even if they browse first.
+  try { var fc = (new URLSearchParams(location.search).get('from') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40); if (fc) localStorage.setItem('smn-from', JSON.stringify({ c: fc, t: Date.now() })); } catch (e) {}
+
   var toggle = document.querySelector('.nav-toggle');
   var nav = document.getElementById('nav');
   if (toggle && nav) {
