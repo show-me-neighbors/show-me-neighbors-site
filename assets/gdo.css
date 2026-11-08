@@ -1,0 +1,166 @@
+/* Show-Me Neighbors: Good Days Out pages (statewide + county pages). Built on styles.css. */
+.gdo-ic { width: 26px; height: 26px; flex: none; }
+.gdo-mi { width: 18px; height: 18px; flex: none; display: inline-block; vertical-align: -3px; margin-right: 6px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Hero */
+.gdo-hero { position: relative; color: #fff; background: #13204b url(photos/ozarks.jpg) 50% 40% / cover no-repeat; overflow: hidden; }
+.gdo-hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(19,32,75,.78) 0%, rgba(19,32,75,.55) 55%, rgba(19,32,75,.82) 100%); }
+.gdo-hero .wrap { position: relative; padding: 84px 20px 76px; }
+.gdo-hero .eyebrow { color: var(--sun); }
+.gdo-hero h1 { color: #fff; max-width: 15em; font-weight: 800; }
+.gdo-hero h1 em { font-style: normal; color: var(--sun); }
+.gdo-hero .lead { color: rgba(255,255,255,.92); max-width: 36em; }
+.gdo-find { margin-top: 28px; background: #fff; border-radius: 22px; padding: 10px; display: flex; gap: 10px; max-width: 640px; box-shadow: 0 18px 40px rgba(0,0,0,.25); }
+.gdo-find input { flex: 1; min-width: 0; border: 0; font: inherit; font-size: 1.1rem; padding: 12px 14px; color: var(--ink); border-radius: 14px; }
+.gdo-find input:focus { outline: 3px solid #9fc2dd; }
+.gdo-find .btn { padding: 12px 24px; }
+.gdo-find-hint { margin-top: 10px; font-size: .95rem; color: rgba(255,255,255,.85); }
+.gdo-find-hint button { background: none; border: 0; color: #fff; font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; padding: 0; }
+.gdo-stats { display: flex; flex-wrap: wrap; gap: 12px 34px; margin-top: 38px; }
+.gdo-stats div { display: flex; flex-direction: column; }
+.gdo-stats b { font-family: "Nunito", sans-serif; font-size: 2.1rem; font-weight: 900; line-height: 1; color: #fff; }
+.gdo-stats span { font-size: .92rem; color: rgba(255,255,255,.8); font-weight: 700; }
+
+/* "Near you" status line */
+.gdo-near { display: none; margin-top: 18px; max-width: 640px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 16px; padding: 14px 18px; font-size: 1rem; }
+.gdo-near.on { display: block; }
+.gdo-near a { color: #fff; font-weight: 800; }
+
+/* Pillars */
+.gdo-pillars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; margin-top: 30px; }
+.gdo-pillars > div { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); }
+.gdo-pillars svg { width: 46px; height: 46px; margin-bottom: 10px; }
+.gdo-pillars h3 { font-size: 1.12rem; font-weight: 800; }
+.gdo-pillars p { color: var(--ink-soft); font-size: .98rem; margin: 0; }
+
+/* Day planner */
+.gdo-builder { display: grid; grid-template-columns: 340px 1fr; gap: 28px; margin-top: 30px; align-items: start; }
+.gdo-controls { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); display: grid; gap: 16px; }
+.gdo-controls label, .gdo-controls legend { font-weight: 800; font-size: .98rem; display: block; }
+.gdo-controls input, .gdo-controls select, .gdo-filter-row input, .gdo-filter-row select { width: 100%; margin-top: 6px; font: inherit; font-size: 1rem; padding: 11px 12px; border: 2px solid #cfd9e6; border-radius: 12px; background: #fff; color: var(--ink); }
+.gdo-controls fieldset { border: 0; padding: 0; margin: 0; }
+.gdo-opt { font-weight: 600; color: var(--ink-soft); }
+.gdo-interests { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.gdo-interests button, .gdo-cats button { font: inherit; font-size: .95rem; font-weight: 800; border: 2px solid #cfd9e6; background: #fff; color: var(--ink); border-radius: 999px; padding: 7px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.gdo-interests button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.gdo-day { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 28px; box-shadow: var(--shadow); min-height: 300px; }
+.gdo-day-title { font-family: "Nunito", sans-serif; font-weight: 800; font-size: 1.35rem; margin: 0 0 4px; }
+.gdo-day-sub { color: var(--ink-soft); margin: 0 0 18px; font-size: 1rem; }
+.gdo-steps { list-style: none; padding: 0; margin: 0; position: relative; }
+.gdo-steps::before { content: ""; position: absolute; left: 21px; top: 10px; bottom: 10px; width: 3px; background: #e8eff6; border-radius: 3px; }
+.gdo-steps li { position: relative; display: grid; grid-template-columns: 46px 1fr; gap: 14px; padding: 8px 0 14px; }
+.gdo-steps .dot { width: 44px; height: 44px; border-radius: 50%; background: #fff; border: 3px solid var(--c, #376d93); display: grid; place-items: center; position: relative; z-index: 1; }
+.gdo-steps .dot svg { width: 24px; height: 24px; }
+.gdo-steps .time { font-size: .82rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--brick); }
+.gdo-steps b { display: block; font-size: 1.08rem; }
+.gdo-steps small { display: block; color: var(--ink-soft); font-size: .95rem; line-height: 1.45; margin-top: 2px; }
+.gdo-steps a { font-weight: 800; }
+.gdo-day-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); align-items: center; }
+.gdo-day-note { font-size: .92rem; color: var(--ink-soft); margin: 14px 0 0; }
+
+/* Explorer */
+.gdo-filters { margin-top: 26px; display: grid; gap: 14px; }
+.gdo-cats { display: flex; flex-wrap: wrap; gap: 8px; }
+.gdo-cats button b { font-weight: 900; color: var(--ink-soft); font-size: .85rem; }
+.gdo-cats button[aria-pressed="true"] { background: var(--c, var(--ink)); border-color: var(--c, var(--ink)); color: #fff; }
+.gdo-cats button[aria-pressed="true"] b { color: rgba(255,255,255,.85); }
+.gdo-cats button[aria-pressed="true"] svg { filter: brightness(0) invert(1); }
+.gdo-chip-ic { width: 20px; height: 20px; }
+.gdo-filter-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 12px; align-items: end; }
+.gdo-filter-row label { font-weight: 800; font-size: .9rem; }
+.gdo-count { font-weight: 800; color: var(--ink-soft); white-space: nowrap; padding-bottom: 12px; }
+.gdo-map-box { position: relative; margin-top: 18px; }
+.gdo-map { height: 520px; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); background: #e8eff6; z-index: 0; }
+.gdo-map-fallback { display: none; }
+.gdo-map.failed { display: none; }
+.gdo-map.failed + .gdo-map-fallback { display: block; color: var(--ink-soft); }
+.gdo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 22px; }
+.gdo-card { background: #fff; border: 1px solid var(--line); border-top: 5px solid var(--c, #376d93); border-radius: 16px; padding: 20px 20px 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+.gdo-card-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 8px; }
+.gdo-tag { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; color: var(--c, #376d93); }
+.gdo-tag-ic { width: 20px; height: 20px; }
+.gdo-town { font-size: .85rem; font-weight: 800; color: var(--ink-soft); text-align: right; }
+.gdo-card h3 { font-size: 1.15rem; font-weight: 800; margin: 0 0 6px; }
+.gdo-card p { font-size: .98rem; color: var(--ink-soft); margin: 0 0 10px; line-height: 1.5; }
+.gdo-card .gdo-access { color: #2f6b45; font-weight: 700; font-size: .92rem; }
+.gdo-meta { display: grid; gap: 4px; font-size: .9rem; color: var(--ink-soft); margin-bottom: 10px; }
+.gdo-links { margin-top: auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center; padding-top: 10px; border-top: 1px solid var(--line); font-size: .92rem; }
+.gdo-links a { font-weight: 800; text-decoration: none; overflow-wrap: anywhere; }
+.gdo-links button { background: none; border: 0; padding: 0; font: inherit; font-weight: 800; color: var(--brick-dark); cursor: pointer; }
+.gdo-dist { font-size: .85rem; font-weight: 800; color: var(--brick); }
+.gdo-empty { grid-column: 1 / -1; color: var(--ink-soft); background: var(--sage-soft); padding: 20px; border-radius: 14px; }
+.gdo-more { display: flex; justify-content: center; margin-top: 24px; }
+.gdo-fine { font-size: .9rem; color: var(--ink-soft); margin-top: 18px; }
+
+/* Map pins */
+.gdo-pin span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #fff; border: 3px solid var(--c); box-shadow: 0 3px 8px rgba(19,32,75,.3); }
+.gdo-pin-ic { width: 20px; height: 20px; }
+.gdo-here span { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--sun); border: 4px solid #fff; box-shadow: 0 0 0 3px var(--ink); }
+.gdo-pop p { margin: 0 0 4px; }
+.gdo-pop-cat { font-size: .75rem; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
+.gdo-pop-name { font-weight: 800; font-size: 1rem; color: #13204b; }
+.gdo-pop-town { font-size: .88rem; color: #4a5675; }
+.gdo-popup .leaflet-popup-content { font-family: "Nunito Sans", sans-serif; margin: 12px 14px; }
+.marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background: rgba(55,109,147,.25) !important; }
+.marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div { background: #376d93 !important; color: #fff !important; font-weight: 900; font-family: "Nunito Sans", sans-serif; }
+
+/* Calendar */
+.gdo-cal { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 26px; }
+.gdo-month { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+.gdo-month.now { border: 2px solid var(--sun); box-shadow: var(--shadow); }
+.gdo-mname { font-family: "Nunito", sans-serif; font-weight: 900; font-size: 1.1rem; margin: 0 0 8px; display: flex; justify-content: space-between; }
+.gdo-mname small { font-size: .78rem; color: var(--sun); text-transform: uppercase; letter-spacing: .06em; }
+.gdo-month a { display: block; text-decoration: none; font-weight: 800; font-size: .93rem; color: var(--ink); padding: 5px 0; border-top: 1px dashed var(--line); line-height: 1.3; }
+.gdo-month a small { display: block; font-weight: 600; color: var(--ink-soft); font-size: .82rem; }
+.gdo-month .more { font-size: .85rem; color: var(--ink-soft); padding-top: 6px; }
+.gdo-quiet { font-size: .9rem; color: var(--ink-soft); }
+
+/* County browser */
+.gdo-regions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 28px; }
+.gdo-region { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; }
+.gdo-region h3 { font-size: 1.1rem; font-weight: 900; margin-bottom: 10px; }
+.gdo-region ul { list-style: none; padding: 0; margin: 0; columns: 2; column-gap: 18px; font-size: .95rem; }
+.gdo-region li { break-inside: avoid; padding: 2px 0; }
+.gdo-region a { text-decoration: none; font-weight: 700; }
+.gdo-region a:hover { text-decoration: underline; }
+.gdo-region small { color: var(--ink-soft); font-weight: 700; }
+.gdo-region li.live a::after { content: " \2022 Now"; color: var(--sun); font-weight: 900; font-size: .8rem; }
+
+/* Neighbor + family bands */
+.gdo-split { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.gdo-panel { border-radius: 24px; padding: 36px; position: relative; overflow: hidden; }
+.gdo-panel h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); font-weight: 800; }
+.gdo-panel.ink { background: var(--ink); color: #fff; }
+.gdo-panel.ink p { color: rgba(255,255,255,.88); }
+.gdo-panel.ink .eyebrow { color: var(--sun); }
+.gdo-panel.sun { background: #fdf1dc; }
+.gdo-panel ul { padding-left: 1.1em; margin: 0 0 18px; }
+.gdo-panel .btn-ghost { border-color: #fff; color: #fff; }
+.gdo-panel.sun .btn-ghost { border-color: var(--ink); color: var(--ink); }
+
+/* County page bits */
+.gdo-crumbs { font-size: .92rem; margin-bottom: 14px; }
+.gdo-crumbs a { color: #fff; font-weight: 800; }
+.gdo-towns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.gdo-towns a, .gdo-towns span { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: .9rem; font-weight: 700; color: var(--ink); text-decoration: none; }
+.gdo-towns a:hover { border-color: var(--brick); }
+.gdo-nearby { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+@media (max-width: 1080px) { .gdo-pillars { grid-template-columns: repeat(3, 1fr); } .gdo-cal { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 920px) {
+  .gdo-builder, .gdo-split { grid-template-columns: 1fr; }
+  .gdo-grid, .gdo-regions { grid-template-columns: 1fr 1fr; }
+  .gdo-filter-row { grid-template-columns: 1fr 1fr; }
+  .gdo-cal { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 620px) {
+  .gdo-hero .wrap { padding: 56px 16px 52px; }
+  .gdo-find { flex-direction: column; }
+  .gdo-pillars, .gdo-grid, .gdo-regions, .gdo-cal { grid-template-columns: 1fr; }
+  .gdo-filter-row { grid-template-columns: 1fr; }
+  .gdo-map { height: 380px; }
+  .gdo-panel { padding: 26px 22px; }
+  .gdo-region ul { columns: 1; }
+  .gdo-stats b { font-size: 1.7rem; }
+}
