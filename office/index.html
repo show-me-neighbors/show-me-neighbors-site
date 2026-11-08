@@ -251,18 +251,18 @@
     var counts = { family: 0, neighbor: 0 }; YEAR.posts.forEach(function (p) { counts[p.audience]++; });
     var mName = function (m) { return new Date(m + '-15T12:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); };
     var h = mkHead() +
-      '<div class="card" style="margin-top:16px"><h3 style="margin:0 0 6px;font-size:1.1rem">' + YEAR.posts.length + ' posts, 3 a week, ' + yrDate(YEAR.posts[0].date) + ' to ' + yrDate(YEAR.posts[YEAR.posts.length - 1].date) + '</h3>' +
-      '<p class="muted small" style="margin:0">' + counts.family + ' for families, ' + counts.neighbor + ' to recruit Neighbors. Mondays go to families, Wednesdays to Neighbors, and Fridays to Neighbors through the winter, then take turns. ' + e(YEAR.note || '') + '</p></div>' +
+      '<div class="card" style="margin-top:16px"><h3 style="margin:0 0 6px;font-size:1.1rem">' + YEAR.posts.length + ' posts (3 a week plus ' + YEAR.posts.filter(function (x) { return x.video; }).length + ' video posts), ' + yrDate(YEAR.posts[0].date) + ' to ' + yrDate(YEAR.posts[YEAR.posts.length - 1].date) + '</h3>' +
+      '<p class="muted small" style="margin:0">' + counts.family + ' for families, ' + counts.neighbor + ' to recruit Neighbors. Mondays go to families, Wednesdays to Neighbors, and Fridays to Neighbors through the winter, then take turns. The two how-it-works videos repeat on Tuesdays and Thursdays. Pin the families video to the top of the Facebook Page after it first posts. ' + e(YEAR.note || '') + '</p></div>' +
       '<div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0"><select id="yrM" style="min-width:0">' + months.map(function (m) { return '<option value="' + m + '"' + (m === yrMonth ? ' selected' : '') + '>' + mName(m) + '</option>'; }).join('') + '</select>' +
       '<select id="yrW"><option value="all">Everyone</option><option value="family"' + (yrWho === 'family' ? ' selected' : '') + '>For families</option><option value="neighbor"' + (yrWho === 'neighbor' ? ' selected' : '') + '>Recruiting Neighbors</option></select></div>' +
       list.map(function (p) {
-        var i = YEAR.posts.indexOf(p), past = p.date < today;
+        var i = YEAR.posts.indexOf(p), past = p.date < today, pic = p.video ? '/assets/videos/' + p.video + '.jpg' : '/assets/social/' + p.id + '.jpg', file = p.video ? '/assets/videos/' + p.video + '.mp4' : pic;
         return '<div class="card rec" style="margin-bottom:14px' + (past ? ';opacity:.7' : '') + '"><div style="display:flex;gap:16px;flex-wrap:wrap">' +
-          '<a href="/assets/social/' + p.id + '.jpg" target="_blank" style="flex:0 0 150px"><img src="/assets/social/' + p.id + '.jpg" alt="Picture for this post" loading="lazy" style="width:150px;border-radius:10px;display:block"></a>' +
-          '<div style="flex:1 1 260px;min-width:0"><div class="muted small">' + yrDate(p.date) + ' &middot; ' + (p.audience === 'family' ? 'For families' : 'Recruiting Neighbors') + (p.status ? ' &middot; <b>' + e(p.status) + '</b>' : '') + '</div>' +
+          (p.video ? '<video src="' + file + '" poster="' + pic + '" controls preload="none" playsinline style="flex:0 0 150px;width:150px;border-radius:10px;display:block;background:#13204b"></video>' : '<a href="' + pic + '" target="_blank" style="flex:0 0 150px"><img src="' + pic + '" alt="Picture for this post" loading="lazy" style="width:150px;border-radius:10px;display:block"></a>') +
+          '<div style="flex:1 1 260px;min-width:0"><div class="muted small">' + yrDate(p.date) + ' &middot; ' + (p.audience === 'family' ? 'For families' : 'Recruiting Neighbors') + (p.video ? ' &middot; <b>Video</b>' : '') + (p.status ? ' &middot; <b>' + e(p.status) + '</b>' : '') + '</div>' +
           '<h3 style="margin:2px 0 8px;font-size:1.1rem">' + e(p.theme) + '</h3>' +
           '<pre style="white-space:pre-wrap;font:inherit;font-size:.92rem;background:#f5f8fc;border:1px solid var(--line);border-radius:12px;padding:14px;margin:0;max-height:240px;overflow:auto">' + e(yrText(p, 'fb')) + '</pre>' +
-          '<div class="acts"><button class="go" data-yfb="' + i + '">Copy for Facebook</button><button data-yig="' + i + '">Copy for Instagram</button><a class="small" href="/assets/social/' + p.id + '.jpg" target="_blank" style="align-self:center">Open picture</a></div></div></div></div>';
+          '<div class="acts"><button class="go" data-yfb="' + i + '">Copy for Facebook</button><button data-yig="' + i + '">Copy for Instagram</button><a class="small" href="' + file + '" target="_blank" style="align-self:center">' + (p.video ? 'Open video' : 'Open picture') + '</a></div></div></div></div>';
       }).join('');
     app.innerHTML = h; wireTabs();
     document.getElementById('yrM').onchange = function () { yrMonth = this.value; loadYear(); };

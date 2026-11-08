@@ -1,6 +1,6 @@
 {
  "updated": "2026-11-08",
- "note": "Pictures are illustrations, not real Neighbors or families.",
+ "note": "Pictures are illustrations, not real Neighbors or families. Video posts show the real apps with sample people.",
  "posts": [
   {
    "id": "2026-11-16-f",
@@ -15,6 +15,19 @@
    "text": "Hello, Missouri! Show-Me Neighbors just opened, and we are so glad you found us. 👋\n\nWe match older adults with friendly, background-checked local helpers we call Neighbors. They come by for company and conversation, rides to appointments, grocery runs and a hand around the house.\n\nWe are starting in Springfield, Branson and Table Rock Lake, and St. Charles County. We are now welcoming families, and setting it up for a parent takes just a few minutes from any phone, tablet or computer.\n\nMake your free family account here:\n{LINK}"
   },
   {
+   "id": "2026-11-17-fv",
+   "week": 1,
+   "date": "2026-11-17",
+   "day": "Tue",
+   "audience": "family",
+   "theme": "Video: how it works",
+   "headline": "How it works for families",
+   "photo": "video",
+   "video": "how-it-works-families",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "Ever wonder how Show-Me Neighbors actually works? Here it is, start to finish, right on a phone.\n\nMake a free account, tell us about your mom or dad, and book a visit for company, rides or errands. You see who is coming before they arrive, and you get a short note after every visit.\n\n$34 an hour. No contracts, ever.\n\nMake your free family account here:\n{LINK}"
+  },
+  {
    "id": "2026-11-18-n",
    "week": 1,
    "date": "2026-11-18",
@@ -25,6 +38,19 @@
    "photo": "door",
    "tags": "#SpringfieldMO #StCharlesMO #Ozarks",
    "text": "We just opened, and we are now welcoming our very first Neighbors.\n\nA Neighbor visits older adults close to home for company, rides, errands and light help. Think coffee and conversation, a trip to the grocery store or a game of cards.\n\nYou pick your own hours. You earn $18 an hour on weekdays and $21 on evenings and weekends, paid after every visit.\n\nYou need to be 21 or older with a smartphone, a valid driver's license and a reliable car insured in your name. No healthcare experience needed.\n\nApply in about 5 minutes here:\n{LINK}"
+  },
+  {
+   "id": "2026-11-19-nv",
+   "week": 1,
+   "date": "2026-11-19",
+   "day": "Thu",
+   "audience": "neighbor",
+   "theme": "Video: becoming a Neighbor",
+   "headline": "Become a Neighbor",
+   "photo": "video",
+   "video": "become-a-neighbor",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "What is it really like to be a Neighbor? Here is a real look, from applying to getting paid.\n\nPick the hours you are free. Get visit offers near you, with the pay shown up front. Accept the ones that fit. Check in, enjoy the visit, leave a short note, and you are paid after every visit.\n\n$18 an hour weekdays, $21 evenings and weekends.\n\nApply in about 5 minutes:\n{LINK}"
   },
   {
    "id": "2026-11-20-n",
@@ -135,6 +161,19 @@
    "text": "Did you know? When you drive during a visit for rides and errands, those miles are paid back to you at the full IRS rate. In 2026 that is 76 cents a mile.\n\nAnd 100% of it goes to you. We do not take a cut.\n\nSo when you take someone to the barber, the pharmacy and the grocery store in one afternoon, your hourly pay and your miles are both covered. You also choose how far you are willing to drive, so visits stay close to home.\n\nApply in about 5 minutes here:\n{LINK}"
   },
   {
+   "id": "2026-12-10-nv",
+   "week": 4,
+   "date": "2026-12-10",
+   "day": "Thu",
+   "audience": "neighbor",
+   "theme": "Video: becoming a Neighbor (repeat)",
+   "headline": "Become a Neighbor",
+   "photo": "video",
+   "video": "become-a-neighbor",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "You see exactly what you will earn before you say yes.\n\nEvery offer shows the day, the time, how far it is and the pay. Take it, or skip it. No pressure, and no set schedule.\n\nWatch how it works, then apply here:\n{LINK}"
+  },
+  {
    "id": "2026-12-11-n",
    "week": 4,
    "date": "2026-12-11",
@@ -231,6 +270,19 @@
    "text": "\"What if I only need help one time?\" Good news. That is just fine.\n\nMaybe Dad needs a ride to an appointment the week after New Year and you cannot get off work. Book one visit. There are no contracts, ever.\n\nVisits are $34 an hour on weekdays from 8 am to 6 pm and $38 on evenings and weekends. One-hour minimum, then billed by the 5 minutes. The card is charged after the visit.\n\nIf you like it, you can book the same day and time every week later.\n\nMake your free family account here:\n{LINK}"
   },
   {
+   "id": "2026-12-29-fv",
+   "week": 7,
+   "date": "2026-12-29",
+   "day": "Tue",
+   "audience": "family",
+   "theme": "Video: how it works (repeat)",
+   "headline": "How it works for families",
+   "photo": "video",
+   "video": "how-it-works-families",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "One minute, and you will know exactly how a visit works.\n\nPick what would help, how long, and a day and time. You only see times when a background-checked Neighbor who fits is free. Your card is charged after the visit, for that visit only.\n\nWatch, then make your free family account:\n{LINK}"
+  },
+  {
    "id": "2026-12-30-n",
    "week": 7,
    "date": "2026-12-30",
@@ -241,6 +293,19 @@
    "photo": "none",
    "tags": "#SpringfieldMO #StCharlesMO #BransonMO",
    "text": "Thinking about what you want 2027 to look like?\n\nMaybe it is more time with people and less time on screens. Maybe it is flexible work that fits around everything else. Maybe it is just feeling useful again.\n\nBeing a Neighbor checks all three. You visit older adults close to home for company, rides and errands, on the days you choose. Paid after every visit, with miles paid back at the full IRS rate.\n\nStart the year by applying. It is free and takes about 5 minutes.\n\nApply in about 5 minutes here:\n{LINK}"
+  },
+  {
+   "id": "2026-12-31-nv",
+   "week": 7,
+   "date": "2026-12-31",
+   "day": "Thu",
+   "audience": "neighbor",
+   "theme": "Video: becoming a Neighbor (repeat)",
+   "headline": "Become a Neighbor",
+   "photo": "video",
+   "video": "become-a-neighbor",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "Paid after every visit. It usually lands in your bank in about 2 business days.\n\nThis one-minute video walks you through a whole visit, from the offer to the note you leave for the family. Miles you drive for errands are paid back too, 100% yours.\n\nApply in about 5 minutes:\n{LINK}"
   },
   {
    "id": "2027-01-01-n",
@@ -351,6 +416,19 @@
    "text": "Quick question for you. 💬\n\nIf you spent two hours with an older adult in your town, what would you love to do together?\n\nTeach them a new card game? Bake cookies? Look through old photo albums? Help them video call the grandkids? Go for a drive and see the hills?\n\nTell us in the comments. Every answer is a reminder of how much a Neighbor visit can mean.\n\nAnd if you are already picturing it, you might be exactly who we are looking for.\n\nApply in about 5 minutes here:\n{LINK}"
   },
   {
+   "id": "2027-01-21-nv",
+   "week": 10,
+   "date": "2027-01-21",
+   "day": "Thu",
+   "audience": "neighbor",
+   "theme": "Video: becoming a Neighbor (repeat)",
+   "headline": "Become a Neighbor",
+   "photo": "video",
+   "video": "become-a-neighbor",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "No healthcare experience needed. Just a kind heart, a smartphone and a reliable car.\n\nHere is how a visit goes for a Neighbor: pick your hours, accept a visit nearby, check in, help out, and finish with a short note.\n\nSee if it fits your life, then apply:\n{LINK}"
+  },
+  {
    "id": "2027-01-22-n",
    "week": 10,
    "date": "2027-01-22",
@@ -447,6 +525,19 @@
    "text": "Valentine's Day is this weekend. If you cannot be there in person, you can still make it special for your mom or dad. ❤️\n\nBook a Neighbor to take them to lunch out, to visit an old friend, to see a show or just for coffee and conversation on the porch.\n\nYou will see the Neighbor's name and photo before they arrive, and you will get a short note after the visit telling you how it went.\n\nOne visit, no contracts. A little love from wherever you are.\n\nMake your free family account here:\n{LINK}"
   },
   {
+   "id": "2027-02-09-fv",
+   "week": 13,
+   "date": "2027-02-09",
+   "day": "Tue",
+   "audience": "family",
+   "theme": "Video: how it works (repeat)",
+   "headline": "How it works for families",
+   "photo": "video",
+   "video": "how-it-works-families",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "Live a few hours away from Mom? This one is for you.\n\nYou can set up and keep track of every visit from your own phone. See your Neighbor's name before they come, and read a note about how the day went after.\n\nSee how it works, then get started here:\n{LINK}"
+  },
+  {
    "id": "2027-02-10-n",
    "week": 13,
    "date": "2027-02-10",
@@ -457,6 +548,19 @@
    "photo": "none",
    "tags": "#SpringfieldMO #StCharlesMO #BransonMO",
    "text": "Families are trusting you with someone they love. That is why every Neighbor goes through the same steps.\n\nA live one-on-one video interview, so we really get to know you.\nA criminal background check searched across all 50 states.\nA driving record check, since many visits include rides.\nAn onboarding course and quiz, so you feel ready.\n\nThese checks are what let families say yes with confidence. If you are ready for that kind of trust, we would love to hear from you.\n\nApply in about 5 minutes here:\n{LINK}"
+  },
+  {
+   "id": "2027-02-11-nv",
+   "week": 13,
+   "date": "2027-02-11",
+   "day": "Thu",
+   "audience": "neighbor",
+   "theme": "Video: becoming a Neighbor (repeat)",
+   "headline": "Become a Neighbor",
+   "photo": "video",
+   "video": "become-a-neighbor",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "What is it really like to be a Neighbor? Here is a real look, from applying to getting paid.\n\nPick the hours you are free. Get visit offers near you, with the pay shown up front. Accept the ones that fit. Check in, enjoy the visit, leave a short note, and you are paid after every visit.\n\n$18 an hour weekdays, $21 evenings and weekends.\n\nApply in about 5 minutes:\n{LINK}"
   },
   {
    "id": "2027-02-12-n",
@@ -663,6 +767,19 @@
    "text": "Spring cleaning season is here, and some chores are harder than they used to be.\n\nA Neighbor can lend a hand with light tidying and dishes, laundry and changing the sheets, watering plants and Goodwill drop-offs for that closet your dad has been meaning to clear out.\n\nNo ladders or power tools, and nothing medical. Just a friendly extra set of hands and good conversation while the work gets done.\n\nBook one visit for the big spring push. Start with a free family account.\n{LINK}"
   },
   {
+   "id": "2027-03-23-fv",
+   "week": 19,
+   "date": "2027-03-23",
+   "day": "Tue",
+   "audience": "family",
+   "theme": "Video: how it works (repeat)",
+   "headline": "How it works for families",
+   "photo": "video",
+   "video": "how-it-works-families",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "Here is what booking a Neighbor looks like, from the first tap to the note after the visit.\n\nCompany, rides to appointments, groceries, the pharmacy and a little help at home. Book once, or set up the same time every week. Cancel free up to 24 hours ahead.\n\nMake your free family account:\n{LINK}"
+  },
+  {
    "id": "2027-03-24-n",
    "week": 19,
    "date": "2027-03-24",
@@ -673,6 +790,19 @@
    "photo": "none",
    "tags": "#417 #636 #Ozarks",
    "text": "Here's what applying to be a Neighbor looks like.\n\nFirst, a short application with a few screening questions. It takes about 5 minutes.\nRight after, you pick a time for a one-on-one live video interview.\nThen a background check and a driving record check.\nLast, an onboarding course and a quick quiz.\n\nIt's free to apply. You need to be 21 or older, with a smartphone, a valid driver's license and a reliable car with insurance in your name.\n\nStart your application here.\n{LINK}"
+  },
+  {
+   "id": "2027-03-25-nv",
+   "week": 19,
+   "date": "2027-03-25",
+   "day": "Thu",
+   "audience": "neighbor",
+   "theme": "Video: becoming a Neighbor (repeat)",
+   "headline": "Become a Neighbor",
+   "photo": "video",
+   "video": "become-a-neighbor",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "You see exactly what you will earn before you say yes.\n\nEvery offer shows the day, the time, how far it is and the pay. Take it, or skip it. No pressure, and no set schedule.\n\nWatch how it works, then apply here:\n{LINK}"
   },
   {
    "id": "2027-03-26-f",
@@ -879,6 +1009,19 @@
    "text": "May is Older Americans Month, a good time to honor the people who built our towns, raised our families and still have plenty of stories to tell.\n\nOne simple way to celebrate: make sure your mom or dad has something to look forward to this week. A lunch out. A drive through the countryside. A long visit with good conversation.\n\nA Neighbor can be part of that, for one visit or every week.\n\nMake your free family account.\n{LINK}"
   },
   {
+   "id": "2027-05-04-fv",
+   "week": 25,
+   "date": "2027-05-04",
+   "day": "Tue",
+   "audience": "family",
+   "theme": "Video: how it works (repeat)",
+   "headline": "How it works for families",
+   "photo": "video",
+   "video": "how-it-works-families",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "Ever wonder how Show-Me Neighbors actually works? Here it is, start to finish, right on a phone.\n\nMake a free account, tell us about your mom or dad, and book a visit for company, rides or errands. You see who is coming before they arrive, and you get a short note after every visit.\n\n$34 an hour. No contracts, ever.\n\nMake your free family account here:\n{LINK}"
+  },
+  {
    "id": "2027-05-05-n",
    "week": 25,
    "date": "2027-05-05",
@@ -889,6 +1032,19 @@
    "photo": "porch",
    "tags": "#Ozarks #SpringfieldMO #StCharlesMO",
    "text": "Here's something special about being a Neighbor.\n\nWhen a family marks you as a favorite, their weekly visits are offered to you first. So the same Tuesday afternoon can turn into a standing date for dominoes, stories and a glass of iced tea.\n\nMany visits are 2 or 3 hours, which leaves time to really get to know someone.\n\nAnd there's no tipping, so there's never any awkwardness.\n\nApply free in about 5 minutes.\n{LINK}"
+  },
+  {
+   "id": "2027-05-06-nv",
+   "week": 25,
+   "date": "2027-05-06",
+   "day": "Thu",
+   "audience": "neighbor",
+   "theme": "Video: becoming a Neighbor (repeat)",
+   "headline": "Become a Neighbor",
+   "photo": "video",
+   "video": "become-a-neighbor",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "Paid after every visit. It usually lands in your bank in about 2 business days.\n\nThis one-minute video walks you through a whole visit, from the offer to the note you leave for the family. Miles you drive for errands are paid back too, 100% yours.\n\nApply in about 5 minutes:\n{LINK}"
   },
   {
    "id": "2027-05-07-f",
@@ -1095,6 +1251,19 @@
    "text": "\"Is it safe to let someone in?\" It is the first question most families ask, and it is a good one.\n\nBefore anyone becomes a Neighbor, they fill out an application with screening questions, do a one-on-one live video interview, and pass a criminal background check searched across all 50 states plus a driving record check. Then they finish an onboarding course and quiz.\n\nYou also see their name and photo before they arrive.\n\nMake your free family account today.\n{LINK}"
   },
   {
+   "id": "2027-06-15-fv",
+   "week": 31,
+   "date": "2027-06-15",
+   "day": "Tue",
+   "audience": "family",
+   "theme": "Video: how it works (repeat)",
+   "headline": "How it works for families",
+   "photo": "video",
+   "video": "how-it-works-families",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "One minute, and you will know exactly how a visit works.\n\nPick what would help, how long, and a day and time. You only see times when a background-checked Neighbor who fits is free. Your card is charged after the visit, for that visit only.\n\nWatch, then make your free family account:\n{LINK}"
+  },
+  {
    "id": "2027-06-16-n",
    "week": 31,
    "date": "2027-06-16",
@@ -1105,6 +1274,19 @@
    "photo": "porch",
    "tags": "#StCharlesMO #636 #SpringfieldMO",
    "text": "Kids grown and gone? The house gets awfully quiet.\n\nBecoming a Neighbor is a way to fill some of those hours with people who will be glad to see you. Help an older adult with a trip to the post office, a walk around the block or an afternoon of old photos and good stories.\n\nYou choose how far you will drive and which visits you take. When families mark you as a favorite, their weekly visits are offered to you first, so friendships have room to grow.\n\nApply in about 5 minutes.\n{LINK}"
+  },
+  {
+   "id": "2027-06-17-nv",
+   "week": 31,
+   "date": "2027-06-17",
+   "day": "Thu",
+   "audience": "neighbor",
+   "theme": "Video: becoming a Neighbor (repeat)",
+   "headline": "Become a Neighbor",
+   "photo": "video",
+   "video": "become-a-neighbor",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "No healthcare experience needed. Just a kind heart, a smartphone and a reliable car.\n\nHere is how a visit goes for a Neighbor: pick your hours, accept a visit nearby, check in, help out, and finish with a short note.\n\nSee if it fits your life, then apply:\n{LINK}"
   },
   {
    "id": "2027-06-18-f",
@@ -1311,6 +1493,19 @@
    "text": "Here is one way families use Show-Me Neighbors in July:\n\nThe heat index is over 100. Your mom needs groceries, a prescription and stamps, but you do not want her sitting in a hot car or walking across a parking lot.\n\nA Neighbor picks her up in an air-conditioned car, runs the errands with her and helps put the groceries away. Or she stays cool at home with the list. You get a short note after the visit.\n\nMileage is charged at the IRS rate and goes to the Neighbor.\n\nMake your free family account today.\n{LINK}"
   },
   {
+   "id": "2027-07-27-fv",
+   "week": 37,
+   "date": "2027-07-27",
+   "day": "Tue",
+   "audience": "family",
+   "theme": "Video: how it works (repeat)",
+   "headline": "How it works for families",
+   "photo": "video",
+   "video": "how-it-works-families",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "Live a few hours away from Mom? This one is for you.\n\nYou can set up and keep track of every visit from your own phone. See your Neighbor's name before they come, and read a note about how the day went after.\n\nSee how it works, then get started here:\n{LINK}"
+  },
+  {
    "id": "2027-07-28-n",
    "week": 37,
    "date": "2027-07-28",
@@ -1321,6 +1516,19 @@
    "photo": "ozarks",
    "tags": "#Ozarks #417 #636",
    "text": "Did you know Neighbors choose how far they are willing to drive?\n\nSome folks only want visits a few minutes from home. Others do not mind a longer drive out to the country. You set it, and you only see visits that fit.\n\nEach visit shows you the day, time, distance and what the family wants help with before you say yes.\n\nPay is $18 an hour on weekdays and $21 on evenings and weekends, plus mileage at the full IRS rate when you drive during a visit.\n\nApply in about 5 minutes.\n{LINK}"
+  },
+  {
+   "id": "2027-07-29-nv",
+   "week": 37,
+   "date": "2027-07-29",
+   "day": "Thu",
+   "audience": "neighbor",
+   "theme": "Video: becoming a Neighbor (repeat)",
+   "headline": "Become a Neighbor",
+   "photo": "video",
+   "video": "become-a-neighbor",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "What is it really like to be a Neighbor? Here is a real look, from applying to getting paid.\n\nPick the hours you are free. Get visit offers near you, with the pay shown up front. Accept the ones that fit. Check in, enjoy the visit, leave a short note, and you are paid after every visit.\n\n$18 an hour weekdays, $21 evenings and weekends.\n\nApply in about 5 minutes:\n{LINK}"
   },
   {
    "id": "2027-07-30-f",
@@ -1527,6 +1735,19 @@
    "text": "Happy Labor Day to everyone who works hard all year, including the sons and daughters who also look after a parent.\n\nDid you know? You can mark favorite Neighbors. When you book weekly visits, a favorite Neighbor is offered those visits first. Your mom gets a familiar face, and you get a little breathing room.\n\nNo contracts. No tipping. Just a kind visit.\n\nMake your free family account when you are ready.\n{LINK}"
   },
   {
+   "id": "2027-09-07-fv",
+   "week": 43,
+   "date": "2027-09-07",
+   "day": "Tue",
+   "audience": "family",
+   "theme": "Video: how it works (repeat)",
+   "headline": "How it works for families",
+   "photo": "video",
+   "video": "how-it-works-families",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "Here is what booking a Neighbor looks like, from the first tap to the note after the visit.\n\nCompany, rides to appointments, groceries, the pharmacy and a little help at home. Book once, or set up the same time every week. Cancel free up to 24 hours ahead.\n\nMake your free family account:\n{LINK}"
+  },
+  {
    "id": "2027-09-08-n",
    "week": 43,
    "date": "2027-09-08",
@@ -1537,6 +1758,19 @@
    "photo": "cards",
    "tags": "#SpringfieldMO #StCharlesMO #417",
    "text": "Grandparents Day is this Sunday. If you are a college or nursing student who misses Grandma's kitchen table and her stories, this one is for you.\n\nLots of older adults near campus would love someone to play cards, help with a video call, or give them a ride to the grocery store. You accept only the visits that fit around your classes.\n\nYou need to be 21 or older, with a smartphone, a valid driver's license and a reliable car with insurance in your name.\n\nApply in about 5 minutes.\n{LINK}"
+  },
+  {
+   "id": "2027-09-09-nv",
+   "week": 43,
+   "date": "2027-09-09",
+   "day": "Thu",
+   "audience": "neighbor",
+   "theme": "Video: becoming a Neighbor (repeat)",
+   "headline": "Become a Neighbor",
+   "photo": "video",
+   "video": "become-a-neighbor",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "You see exactly what you will earn before you say yes.\n\nEvery offer shows the day, the time, how far it is and the pay. Take it, or skip it. No pressure, and no set schedule.\n\nWatch how it works, then apply here:\n{LINK}"
   },
   {
    "id": "2027-09-10-f",
@@ -1743,6 +1977,19 @@
    "text": "The days are getting shorter. By the time you get off work it is almost dark, and that can be a long evening for a parent who lives alone.\n\nHere is one way families use Show-Me Neighbors: a weekly Wednesday visit. Coffee, a walk while it is still light, a puzzle at the kitchen table, and a short note to you afterward.\n\nBook the same day and time every week, with no contracts. Change or cancel up to 24 hours ahead.\n\nMake your free family account.\n{LINK}"
   },
   {
+   "id": "2027-10-19-fv",
+   "week": 49,
+   "date": "2027-10-19",
+   "day": "Tue",
+   "audience": "family",
+   "theme": "Video: how it works (repeat)",
+   "headline": "How it works for families",
+   "photo": "video",
+   "video": "how-it-works-families",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "Ever wonder how Show-Me Neighbors actually works? Here it is, start to finish, right on a phone.\n\nMake a free account, tell us about your mom or dad, and book a visit for company, rides or errands. You see who is coming before they arrive, and you get a short note after every visit.\n\n$34 an hour. No contracts, ever.\n\nMake your free family account here:\n{LINK}"
+  },
+  {
    "id": "2027-10-20-n",
    "week": 49,
    "date": "2027-10-20",
@@ -1753,6 +2000,19 @@
    "photo": "door",
    "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
    "text": "Some of the best friendships start with a simple knock on the door.\n\nWhen a family marks you as a favorite, their weekly visits are offered to you first. Over time, the same afternoon each week becomes something you both look forward to.\n\nVisits are at least 1 hour, and many are 2 or 3. That leaves room for real conversation, a slow game of cards and a second cup of coffee.\n\nApply to be a Neighbor today.\n{LINK}"
+  },
+  {
+   "id": "2027-10-21-nv",
+   "week": 49,
+   "date": "2027-10-21",
+   "day": "Thu",
+   "audience": "neighbor",
+   "theme": "Video: becoming a Neighbor (repeat)",
+   "headline": "Become a Neighbor",
+   "photo": "video",
+   "video": "become-a-neighbor",
+   "tags": "#SpringfieldMO #BransonMO #StCharlesMO",
+   "text": "Paid after every visit. It usually lands in your bank in about 2 business days.\n\nThis one-minute video walks you through a whole visit, from the offer to the note you leave for the family. Miles you drive for errands are paid back too, 100% yours.\n\nApply in about 5 minutes:\n{LINK}"
   },
   {
    "id": "2027-10-22-f",
