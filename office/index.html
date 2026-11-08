@@ -117,8 +117,8 @@
   }
 
   // ---------- pages ----------
-  var page = (location.hash.slice(1) || 'signups'), nbrs = [], msgs = [], sets = [], openId = '';
-  var PAGES = [['signups', 'Sign-ups'], ['families', 'Families'], ['applicants', 'Neighbor applicants'], ['emails', 'Emails'], ['settings', 'Settings']];
+  var page = (location.hash.slice(1) || 'visits'), nbrs = [], msgs = [], sets = [], openId = '';
+  var PAGES = [['visits', 'Visits'], ['signups', 'Sign-ups'], ['families', 'Families'], ['applicants', 'Neighbor applicants'], ['emails', 'Emails'], ['settings', 'Settings']];
   function nav() {
     var failed = msgs.filter(function (m) { return m.status === 'Failed'; }).length;
     return '<nav class="pages">' + PAGES.map(function (p) { return '<a href="#' + p[0] + '" class="' + (page === p[0] ? 'on' : '') + '">' + p[1] + (p[0] === 'emails' && failed ? '<span class="badge">' + failed + ' failed</span>' : '') + '</a>'; }).join('') + '</nav>';
@@ -128,11 +128,12 @@
     msgs = m.error ? [] : m.data;
     if (page === 'applicants') return loadApplicants();
     if (page === 'families') return loadFamilies();
+    if (page === 'visits') return loadVisits();
     if (page === 'emails') return renderEmails();
     if (page === 'settings') return loadSettings();
     return loadSignups();
   }
-  window.addEventListener('hashchange', function () { page = location.hash.slice(1) || 'signups'; if (me) load(); });
+  window.addEventListener('hashchange', function () { page = location.hash.slice(1) || 'visits'; if (me) load(); });
   async function fn(action, body) {
     try {
       var r = await sb.functions.invoke('neighbors', { body: Object.assign({ action: action }, body) });
@@ -179,6 +180,39 @@
         '<td class="det">' + steps.map(function (x) { return '<b>' + x[0] + ':</b> ' + e(x[1]); }).join('<br>') + (n.status !== 'Waitlist' && n.status !== 'Not a fit' ? '<div class="acts"><button data-resend="' + n.id + '">Email them a fresh link</button></div>' : '') + '</td>' +
         '<td><textarea data-nn="' + n.id + '" placeholder="Interview notes...">' + e(n.notes || '') + '</textarea><div class="saved" id="sv-' + n.id + '"></div></td></tr>';
     }).join('') + '</tbody></table></div>' : '<div class="card">No applicants here yet.</div>';
+    app.innerHTML = h;
+  }
+
+  // ---------- visits ----------
+  var vis = [], visF = 'upcoming';
+  async function loadVisits() {
+    var a = await sb.from('visits').select('*').order('start_at', { ascending: false }).limit(1000);
+    var b = await sb.from('families').select('id, first_name, last_name');
+    var c = await sb.from('neighbors').select('id, legal_first, legal_last, preferred');
+    var d = await sb.from('loved_ones').select('id, first_name, preferred, last_name, city');
+    if (a.error) { app.innerHTML = nav() + '<div class="msg err">Could not load visits: ' + e(a.error.message) + '</div>'; return; }
+    var F = {}, N = {}, L = {}; (b.data || []).forEach(function (x) { F[x.id] = x; }); (c.data || []).forEach(function (x) { N[x.id] = x; }); (d.data || []).forEach(function (x) { L[x.id] = x; });
+    vis = a.data.map(function (v) { v._f = F[v.family_id]; v._n = N[v.neighbor_id]; v._l = L[v.loved_one_id]; return v; });
+    renderVisits();
+  }
+  function renderVisits() {
+    var now = new Date().toISOString(), wk = new Date(Date.now() - 7 * 86400e3).toISOString();
+    var cnt = function (f) { return vis.filter(f).length; };
+    var filters = { upcoming: function (v) { return ['Finding a Neighbor', 'Confirmed', 'In progress'].indexOf(v.status) >= 0; }, finding: function (v) { return v.status === 'Finding a Neighbor'; }, done: function (v) { return v.status === 'Done'; }, problems: function (v) { return v.charge_status === 'Failed' || v.location_flag || ['Missed', 'Not filled'].indexOf(v.status) >= 0 || (v.rating && v.rating <= 2); }, all: function () { return true; } };
+    var list = vis.filter(filters[visF]); if (visF === 'upcoming' || visF === 'finding') list = list.slice().reverse();
+    var h = nav() + '<h1 style="font-size:1.9rem;margin-bottom:0">Visits</h1><p class="muted" style="margin:4px 0 0">Everything here runs on its own: offers, confirmations, check-ins, charges, receipts and no-shows. Look at Problems only if you want to.</p>' +
+      '<div class="stats"><div class="stat"><div class="small muted">Coming up</div><div class="n">' + cnt(filters.upcoming) + '</div></div><div class="stat"><div class="small muted">Still finding a Neighbor</div><div class="n">' + cnt(filters.finding) + '</div></div>' +
+      '<div class="stat"><div class="small muted">Done in the last 7 days</div><div class="n">' + cnt(function (v) { return v.status === 'Done' && v.clock_out_at > wk; }) + '</div></div><div class="stat' + (cnt(filters.problems) ? ' hot' : '') + '"><div class="small muted">Problems to look at</div><div class="n">' + cnt(filters.problems) + '</div></div></div>' +
+      '<div class="bar"><div class="tabs">' + [['upcoming', 'Coming up'], ['finding', 'Finding a Neighbor'], ['done', 'Done'], ['problems', 'Problems'], ['all', 'All']].map(function (t) { return '<button data-vf="' + t[0] + '" class="' + (visF === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join(' ') + '</div><span class="spacer"></span><button class="btn btn-ghost btn-small" id="rf">Refresh</button></div>';
+    h += list.length ? '<div class="tablewrap"><table><thead><tr><th>When</th><th>Visit for</th><th>Neighbor</th><th>Status</th><th>Money</th><th>Notes and flags</th></tr></thead><tbody>' + list.map(function (v) {
+      var lo = v._l || {}, f = v._f || {}, n = v._n;
+      return '<tr><td>' + whenLong(v.start_at) + '<div class="small muted">to ' + new Date(v.end_at).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' }) + '</div></td>' +
+        '<td><strong>' + e((lo.preferred || lo.first_name || '') + ' ' + (lo.last_name || '')) + '</strong><div class="small muted">' + e(lo.city || '') + '<br>Booked by ' + e((f.first_name || '') + ' ' + (f.last_name || '')) + '</div></td>' +
+        '<td>' + (n ? e((n.preferred || n.legal_first) + ' ' + n.legal_last) : '<span class="muted">' + (v.offers_sent ? v.offers_sent + ' offered' : '-') + '</span>') + '</td>' +
+        '<td><span class="st ' + (v.status === 'Done' || v.status === 'Confirmed' ? 'done' : v.status === 'Finding a Neighbor' ? 'booked' : v.status === 'In progress' ? 'next' : 'closed') + '">' + e(v.status) + '</span>' + (v.clock_in_at ? '<div class="small muted">In ' + new Date(v.clock_in_at).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' }) + (v.clock_out_at ? ', out ' + new Date(v.clock_out_at).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' }) : '') + '</div>' : '') + '</td>' +
+        '<td class="det">' + (v.total != null ? '<b>Family:</b> $' + (+v.total).toFixed(2) + '<br><b>Neighbor:</b> $' + (+v.neighbor_total || 0).toFixed(2) + '<br>' + (v.charge_status === 'Paid' ? '<span class="ok-line">Paid</span>' : v.charge_status === 'Failed' ? '<span class="area-out">Failed (' + v.charge_attempts + ' tries): ' + e(v.charge_error || '') + '</span>' : e(v.charge_status || '')) : '<span class="muted">$' + (+v.rate).toFixed(0) + '/hr</span>') + '</td>' +
+        '<td class="det">' + (v.location_flag ? '<span class="area-out">' + e(v.location_flag) + '</span><br>' : '') + (v.rating ? '<b>Rating:</b> ' + '&#9733;'.repeat(v.rating) + (v.rating_note ? ' "' + e(v.rating_note) + '"' : '') + '<br>' : '') + (v.visit_note ? '<b>Note:</b> ' + e(v.visit_note) : '') + (v.cancelled_by ? '<br>Cancelled by ' + e(v.cancelled_by) + (+v.cancel_fee ? ', fee $' + (+v.cancel_fee).toFixed(2) : '') : '') + '</td></tr>';
+    }).join('') + '</tbody></table></div>' : '<div class="card">No visits here.</div>';
     app.innerHTML = h;
   }
 
@@ -309,6 +343,7 @@
   app.addEventListener('click', function (ev) {
     var t = ev.target;
     if (t.dataset.tab) { tab = t.dataset.tab; return render(); }
+    if (t.dataset.vf) { visF = t.dataset.vf; return renderVisits(); }
     if (t.id === 'rf') return load();
     if (t.id === 'csv') return csv();
     if (t.dataset.res) return interviewResult(t);

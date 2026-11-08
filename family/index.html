@@ -68,6 +68,8 @@
   .daybtn.on, .timebtn.on { border-color: var(--brick); background: #e3edf6; }
   .times { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin-top: 8px; }
   .timebtn { font-weight: 800; }
+  .stars { display: flex; gap: 4px; margin: 4px 0 6px; } .stars button { font-size: 1.8rem; line-height: 1; background: none; border: 0; color: #cfd8e3; cursor: pointer; padding: 0 2px; } .stars button.on { color: var(--sun); }
+  .rate textarea { min-height: 54px; margin-bottom: 6px; }
   .sumbox { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
   .tablewrap { overflow-x: auto; }
   .rtable, .itable { width: 100%; border-collapse: collapse; font-size: .95rem; }
@@ -349,7 +351,7 @@
   }
   var visits = null, bk = null;
   function vWhen(v) { return dLong(v.start_at) + ', ' + tShort(v.start_at) + ' to ' + tShort(v.end_at); }
-  var VSTAT = { 'Finding a Neighbor': ['Finding your Neighbor', ''], 'Confirmed': ['Confirmed', 'ok'], 'In progress': ['Happening now', 'ok'], 'Done': ['Done', ''], 'Cancelled': ['Cancelled', 'red'], 'Not filled': ['No Neighbor found, not charged', 'red'] };
+  var VSTAT = { 'Finding a Neighbor': ['Finding your Neighbor', ''], 'Confirmed': ['Confirmed', 'ok'], 'In progress': ['Happening now', 'ok'], 'Done': ['Done', ''], 'Cancelled': ['Cancelled', 'red'], 'Not filled': ['No Neighbor found, not charged', 'red'], 'Missed': ['Neighbor did not come, not charged', 'red'] };
   function visitsScreen(note) {
     var h = '<div class="headrow"><div><h1>Visits</h1><p class="muted" style="margin:2px 0 0">Your upcoming and past visits.</p></div>' + bookBtn() + '</div>' + (note || '') + '<div id="vlist"><p class="muted">Loading your visits...</p></div>';
     return h;
@@ -366,6 +368,8 @@
         (v.neighbor ? '<p class="small" style="margin:8px 0 0"><strong>Your Neighbor: ' + e(v.neighbor.name) + '</strong>' + (v.neighbor.bio ? '<br><span class="muted">' + e(v.neighbor.bio) + '</span>' : '') + '</p>' : (v.status === 'Finding a Neighbor' ? '<p class="small muted" style="margin:8px 0 0">We have asked the Neighbors who fit. We will email you as soon as one says yes.</p>' : '')) +
         (v.help && v.help.length ? '<p class="small" style="margin:6px 0 0">Help: ' + e(v.help.join(', ')) + '</p>' : '') +
         (v.visit_note ? '<p class="small" style="margin:6px 0 0"><strong>Note from your Neighbor:</strong> ' + e(v.visit_note) + '</p>' : '') +
+        (v.total != null ? '<p class="small" style="margin:6px 0 0">' + (v.charge_status === 'Paid' ? 'Paid ' + money(v.total) + '. <button class="linkbtn" data-v="pay">See receipt</button>' : v.charge_status === 'Failed' ? '<span style="color:#8a3a22;font-weight:800">Payment of ' + money(v.total) + ' did not go through.</span> <button class="linkbtn" data-v="card">Update card</button>' : 'Charging ' + money(v.total) + '...') + '</p>' : '') +
+        (v.can_rate ? '<div class="rate" data-rate="' + v.id + '"><div class="small" style="font-weight:800;margin-top:10px">How was the visit?</div><div class="stars">' + [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" data-star="' + n + '" aria-label="' + n + ' star' + (n > 1 ? 's' : '') + '">&#9733;</button>'; }).join('') + '</div><textarea rows="2" placeholder="Anything you want us to know? (optional)"></textarea><button class="btn btn-ghost btn-small" data-sendrate="1" disabled>Send</button><div class="rmsg"></div></div>' : (v.rating ? '<p class="small" style="margin:6px 0 0">You rated this visit ' + '&#9733;'.repeat(v.rating) + '</p>' : '')) +
         (['Finding a Neighbor', 'Confirmed'].indexOf(v.status) >= 0 ? '<button class="linkbtn red" style="margin-top:8px;align-self:flex-start" data-vcancel="' + v.id + '">Cancel this visit</button>' : '') + '</div>';
     };
     box.innerHTML = '<h2 class="section-h">Coming up</h2>' + (up.length ? '<div class="tiles">' + up.map(card).join('') + '</div>' : '<p class="muted">Nothing booked right now.</p>') +
@@ -520,6 +524,15 @@
       var sb = app.querySelector('.savebar'); if (sb) sb.hidden = ptab === 'contacts';
       var pf = document.getElementById('pf'); if (pf) pf.hidden = ptab === 'contacts';
       return;
+    }
+    var st = ev.target.closest('[data-star]');
+    if (st) { var box = st.closest('.rate'); box.dataset.stars = st.dataset.star; box.querySelectorAll('[data-star]').forEach(function (b) { b.classList.toggle('on', +b.dataset.star <= +st.dataset.star); }); box.querySelector('[data-sendrate]').disabled = false; return; }
+    var sr = ev.target.closest('[data-sendrate]');
+    if (sr) {
+      var rb = sr.closest('.rate'); busy(sr, 'Sending...');
+      var rr = await callV('rate', { id: rb.dataset.rate, stars: +rb.dataset.stars, note: rb.querySelector('textarea').value.trim() });
+      if (rr && rr.ok) { rb.innerHTML = '<p class="small" style="margin:8px 0 0">' + (+rb.dataset.stars <= 2 ? 'Thank you for telling us. We are sorry. We will never send this Neighbor to you again, and our team will look into it.' : 'Thank you! We will pass your kind words along.') + '</p>'; return; }
+      unbusy(sr); rb.querySelector('.rmsg').innerHTML = '<div class="msg err">' + e((rr && rr.error) || 'That did not work.') + '</div>'; return;
     }
     var bt = ev.target.closest('[data-day],[data-time],[data-book],[data-vcancel]');
     if (bt) {

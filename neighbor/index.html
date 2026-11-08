@@ -46,6 +46,8 @@
   .savebar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; border-top: 1px solid var(--line); margin-top: 18px; padding-top: 16px; }
   .empty { border: 2px dashed var(--line); border-radius: 16px; padding: 22px; text-align: center; color: var(--ink-soft); }
   .linkbtn { background: none; border: 0; font: inherit; font-weight: 800; color: var(--brick); cursor: pointer; padding: 0; }
+  .live { background: #e3f1e6; color: #1f5a37; border-radius: 99px; padding: 2px 10px; font-size: .8rem; font-weight: 900; }
+  .finish { border-top: 1px solid var(--line); margin-top: 12px; }
   .offer { border: 2px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
   .vis { border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; } .vis summary { cursor: pointer; }
   dl.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; } dl.kv dt { color: var(--ink-soft); } dl.kv dd { margin: 0; font-weight: 700; }
@@ -145,7 +147,7 @@
       '<div class="card"><h2>Payday</h2><p style="margin:0 0 6px">Every <strong>Friday</strong>, straight to your bank through Stripe.</p><p class="small muted" style="margin:0">Bank account: <strong>' + e(me.bank_status || 'Not added') + '</strong>' + (me.bank_status === 'Added' ? '' : '. <a href="../apply/">Add it here</a>.') + '</p></div>' +
       (cp ? '<div class="card"><h2>Your background check</h2><p style="margin:0">We paid for it up front. ' + money(a.check_per_visit) + ' comes out of each of your first visits until ' + money(a.check_cost) + ' is covered, and we pay it all back after your ' + e(a.check_refund_after) + 'th visit.</p></div>' : '') +
       '<div class="card"><h2>No tipping</h2><p style="margin:0">Show-Me Neighbors is a no-tipping service. Please kindly say no to tips, cash or gifts, beyond a small thank-you treat.</p></div></div>' +
-      '<div class="card" style="margin-top:18px"><h2>Your visits and pay</h2><div class="empty">Each finished visit shows here with the hours, miles and what you earned. You get a 1099 from Stripe each year.</div></div>';
+      '<div class="card" style="margin-top:18px"><h2>Your visits and pay</h2><div id="earn"><p class="muted small">Loading...</p></div></div>';
   }
   // ---------- offers and visits ----------
   async function callV(action, body) {
@@ -168,12 +170,42 @@
         '<div class="small" style="margin:4px 0 8px"><strong>You earn ' + money(x.pay) + '</strong> (' + x.hours + ' hr at ' + money(x.pay_rate) + ') plus 100% of mileage</div><button class="btn btn-primary btn-small" data-accept="' + x.offer_id + '">Accept</button> <button class="linkbtn" style="margin-left:12px" data-decline="' + x.offer_id + '">No thanks</button><div class="omsg"></div></div>';
     }).join('') : '<div class="empty">No offers right now. When a family near you books during your free hours, we send you an offer. The first Neighbor to accept gets the visit.</div>';
     u.innerHTML = work.visits.length ? work.visits.map(function (v) {
-      return '<details class="vis"><summary><strong>' + e(when(v)) + '</strong><span class="small"> with ' + e(v.name) + '</span></summary><dl class="kv" style="margin-top:10px"><dt>Address</dt><dd>' + e(v.address) + '</dd>' + (v.phone ? '<dt>Their phone</dt><dd>' + e(v.phone) + '</dd>' : '') +
+      return '<details class="vis"' + (v.status === 'In progress' || soon(v) ? ' open' : '') + '><summary>' + (v.status === 'In progress' ? '<span class="live">Happening now</span> ' : '') + '<strong>' + e(when(v)) + '</strong><span class="small"> with ' + e(v.name) + '</span></summary><dl class="kv" style="margin-top:10px"><dt>Address</dt><dd>' + e(v.address) + '</dd>' + (v.phone ? '<dt>Their phone</dt><dd>' + e(v.phone) + '</dd>' : '') +
         '<dt>Help</dt><dd>' + e((v.help || []).join(', ') || 'Company') + '</dd>' + (v.family_notes ? '<dt>For this visit</dt><dd>' + e(v.family_notes) + '</dd>' : '') + (v.arrival ? '<dt>Getting there</dt><dd>' + e(v.arrival) + '</dd>' : '') +
         (v.good_to_know ? '<dt>Good to know</dt><dd>' + e(v.good_to_know) + '</dd>' : '') + (v.interests ? '<dt>Enjoys</dt><dd>' + e(v.interests) + '</dd>' : '') + (v.pets && v.pets.length ? '<dt>Pets</dt><dd>' + e(v.pets.join(', ') + (v.pet_notes ? ' (' + v.pet_notes + ')' : '')) + '</dd>' : '') +
         '<dt>Emergency</dt><dd>Call 911 first. Then ' + (v.emergency.length ? v.emergency.map(function (c) { return e(c.name + (c.relation ? ' (' + c.relation + ')' : '') + ' ' + (c.phone || '')); }).join(', ') : 'the on-call line') + '</dd><dt>You earn</dt><dd>' + money(v.pay) + ' plus 100% of mileage</dd></dl>' +
-        '<button class="linkbtn red" style="margin-top:10px" data-ncancel="' + v.id + '">I can no longer make this visit</button><div class="omsg"></div></details>';
+        visitActions(v) + '<div class="omsg"></div></details>';
     }).join('') : '<div class="empty">No visits yet. Visits you accept show up here, with the address, the family\'s notes and how to get in.</div>';
+  }
+  var earn = null;
+  async function loadEarn() {
+    var r = await callV('earnings'); earn = r && r.ok ? r : null;
+    var box = document.getElementById('earn'); if (!box) return;
+    if (!earn) { box.innerHTML = '<div class="msg err">' + e((r && r.error) || 'Could not load your pay.') + '</div>'; return; }
+    if (!earn.rows.length) { box.innerHTML = '<div class="empty">Each finished visit shows here with the hours, miles and what you earned. You get a 1099 from Stripe each year.</div>'; return; }
+    var y = String(new Date().getFullYear()), yr = earn.rows.filter(function (x) { return x.date.slice(0, 4) === y; }).reduce(function (s2, x) { return s2 + x.total; }, 0);
+    box.innerHTML = '<p style="margin:0 0 10px"><strong>' + money(yr) + '</strong> earned in ' + y + ' from ' + earn.rows.length + ' visit' + (earn.rows.length === 1 ? '' : 's') + '.</p><div style="overflow-x:auto"><table class="week" style="font-size:.92rem"><thead><tr><th style="text-align:left">Date</th><th style="text-align:left">Visit</th><th>Hours</th><th>Pay</th><th>Miles</th><th>Check</th><th>Total</th></tr></thead><tbody>' +
+      earn.rows.map(function (x) { return '<tr><td style="text-align:left;font-weight:600">' + e(new Date(x.date).toLocaleDateString('en-US', { timeZone: 'America/Chicago', month: 'short', day: 'numeric' })) + '</td><td style="text-align:left;font-weight:600">' + e(x.who) + (x.late_cancel ? ' <span class="pill">late cancel</span>' : '') + '</td><td>' + x.hours + '</td><td>' + money(x.pay) + '</td><td>' + (x.miles ? money(x.miles) : '-') + '</td><td>' + (x.refund ? '+' + money(x.refund) : x.deduct ? '-' + money(x.deduct) : '-') + '</td><td><strong>' + money(x.total) + '</strong>' + (x.paid ? '' : '<div class="small muted">waiting on the family\'s card</div>') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+  }
+  function soon(v) { var t = new Date(v.start_at).getTime() - Date.now(); return t < 30 * 60e3 && new Date(v.end_at).getTime() > Date.now(); }
+  function visitActions(v) {
+    if (v.status === 'In progress') {
+      return '<form class="finish" data-finish="' + v.id + '"><h3 style="margin:14px 0 6px">Finish the visit</h3>' +
+        '<div class="field"><label for="mi-' + v.id + '">Miles you drove during the visit for rides and errands</label><input id="mi-' + v.id + '" type="number" inputmode="decimal" min="0" max="150" step="0.1" value="0"><div class="small muted">Do not count your drive to or from the home. Paid to you at ' + money(v.mile_rate || a.mile_rate || 0.76) + ' a mile, 100% yours.</div></div>' +
+        '<div class="field"><label for="nt-' + v.id + '">Note for the family</label><textarea id="nt-' + v.id + '" rows="3" placeholder="We played two games of rummy, picked up her prescription and had lunch. She was in great spirits!"></textarea></div>' +
+        '<button class="btn btn-primary">Finish visit</button></form>';
+    }
+    var can = soon(v);
+    return '<div style="margin-top:12px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="btn btn-primary btn-small" data-clockin="' + v.id + '"' + (can ? '' : ' disabled title="Opens 30 minutes before the visit"') + '>I am here, start the visit</button>' +
+      (can ? '' : '<span class="small muted">Opens 30 minutes before</span>') + '<button class="linkbtn red" data-ncancel="' + v.id + '">I can no longer make this visit</button></div>';
+  }
+  // Where the phone is right now, only at check in and check out. If they say no, the visit still works.
+  function where() {
+    return new Promise(function (res) {
+      if (!navigator.geolocation) return res({});
+      var done = false, to = setTimeout(function () { if (!done) { done = true; res({}); } }, 9000);
+      navigator.geolocation.getCurrentPosition(function (p) { if (done) return; done = true; clearTimeout(to); res({ lat: p.coords.latitude, lon: p.coords.longitude }); }, function () { if (done) return; done = true; clearTimeout(to); res({}); }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
+    });
   }
   function render(note) {
     if (!me) return;
@@ -181,6 +213,7 @@
     app.innerHTML = tabbar() + v(note);
     window.scrollTo(0, 0);
     if (v === home) { if (work) drawWork(); loadWork(); }
+    if (v === pay) loadEarn();
   }
   function header() {
     whoEl.innerHTML = me ? '<button class="btn btn-ghost btn-small" id="out">Sign out</button>' : '';
@@ -214,6 +247,13 @@
   }
 
   app.addEventListener('click', async function (ev) {
+    var ci = ev.target.closest('[data-clockin]');
+    if (ci) {
+      busy(ci, 'Checking in...'); var loc = await where();
+      var rr = await callV('clock_in', Object.assign({ id: ci.dataset.clockin }, loc));
+      if (rr && rr.ok) return render('<div class="msg ok">You are checked in. Enjoy the visit! When you are done, finish it below.</div>');
+      unbusy(ci); var bx = ci.closest('details').querySelector('.omsg'); bx.innerHTML = '<div class="msg err" style="margin:8px 0 0">' + e((rr && rr.error) || 'That did not work.') + '</div>'; return;
+    }
     var w = ev.target.closest('[data-accept],[data-decline],[data-ncancel]');
     if (w) {
       var box = w.parentNode.querySelector('.omsg');
@@ -256,6 +296,14 @@
   });
   app.addEventListener('submit', async function (ev) {
     ev.preventDefault();
+    if (ev.target.dataset.finish) {
+      var id = ev.target.dataset.finish, b = ev.target.querySelector('button'), mi = +document.getElementById('mi-' + id).value || 0, nt = document.getElementById('nt-' + id).value.trim(), bx = ev.target.closest('details').querySelector('.omsg');
+      if (nt.length < 15) { bx.innerHTML = '<div class="msg err" style="margin:8px 0 0">Please write a short note for the family (a sentence or two).</div>'; return; }
+      busy(b, 'Finishing...'); var loc = await where();
+      var r = await callV('clock_out', Object.assign({ id: id, miles: mi, note: nt }, loc));
+      if (r && r.ok) { work = null; earn = null; return render('<div class="msg ok">Thank you! Visit finished. You earned ' + money(r.earned) + ', paid to your bank on Friday. Your note was sent to the family.</div>'); }
+      unbusy(b); bx.innerHTML = '<div class="msg err" style="margin:8px 0 0">' + e((r && r.error) || 'That did not work.') + '</div>'; return;
+    }
     if (ev.target.id !== 'lf') return;
     var btn = ev.target.querySelector('button'); busy(btn, 'Sending...');
     var r = await call('link', { email: document.getElementById('lf-em').value.trim() });
