@@ -208,7 +208,7 @@
   }
   function mkHead() {
     return nav() + '<h1 style="font-size:1.9rem;margin-bottom:0">Marketing</h1><p class="muted" style="margin:4px 0 0">Ready-to-post ads. Each one has its own link, so you can see which posts bring people in. Copy the whole post; the link is already in it.</p>' +
-      '<div class="bar tabs" style="margin-top:16px"><button data-mk="families" class="' + (mkTab === 'families' ? 'on' : '') + '">For families</button><button data-mk="neighbors" class="' + (mkTab === 'neighbors' ? 'on' : '') + '">Recruiting Neighbors</button><button data-mk="year" class="' + (mkTab === 'year' ? 'on' : '') + '">Year plan</button><button data-mk="gdo" class="' + (mkTab === 'gdo' ? 'on' : '') + '">Good Days Out</button></div>';
+      '<div class="bar tabs" style="margin-top:16px"><button data-mk="families" class="' + (mkTab === 'families' ? 'on' : '') + '">For families</button><button data-mk="neighbors" class="' + (mkTab === 'neighbors' ? 'on' : '') + '">Recruiting Neighbors</button><button data-mk="year" class="' + (mkTab === 'year' ? 'on' : '') + '">Year plan</button><button data-mk="gdo" class="' + (mkTab === 'gdo' ? 'on' : '') + '">Good Days Out</button><button data-mk="angles" class="' + (mkTab === 'angles' ? 'on' : '') + '">Angles</button></div>';
   }
   function wireTabs() { app.querySelectorAll('[data-mk]').forEach(function (b) { b.onclick = function () { mkTab = b.dataset.mk; loadMarketing(); }; }); }
   function sourceTable(rows, label, cols) {
@@ -222,13 +222,14 @@
   async function loadMarketing() {
     if (mkTab === 'families') {
       var fr = await sb.from('families').select('source, card_last4');
-      var lab = {}; FAM_POSTS.forEach(function (p) { lab[p.code] = p.where; }); lab['fam-fb-year'] = 'Year plan posts (Facebook)'; (GDO ? GDO.posts : []).forEach(function (p) { lab[p.code] = 'Good Days Out: ' + p.theme; }); if (!GDO) fetch('/office/gdo-posts.json').then(function (r) { return r.json(); }).then(function (j) { GDO = j; }).catch(function () {}); lab['ig-bio'] = 'Instagram bio link'; lab['fb-bio'] = 'Facebook page link';
+      var lab = {}; FAM_POSTS.forEach(function (p) { lab[p.code] = p.where; }); lab['fam-fb-year'] = 'Year plan posts (Facebook)'; (GDO ? GDO.posts : []).concat(ANG ? ANG.posts : []).forEach(function (p) { lab[p.code] = p.theme; }); if (!GDO) fetch('/office/gdo-posts.json').then(function (r) { return r.json(); }).then(function (j) { GDO = j; }).catch(function () {}); if (!ANG) fetch('/office/angle-posts.json').then(function (r) { return r.json(); }).then(function (j) { ANG = j; }).catch(function () {}); lab['ig-bio'] = 'Instagram bio link'; lab['fb-bio'] = 'Facebook page link';
       app.innerHTML = mkHead() + sourceTable(fr.error ? [] : fr.data, lab, [['Made an account', function () { return true; }], ['Added a card', function (f) { return !!f.card_last4; }]]) +
         '<h2 style="font-size:1.25rem;margin:26px 0 10px">Posts to copy</h2><p class="muted" style="margin:0 0 12px">These send families to the home page, where they check their ZIP and make a free account.</p>' + postCards(FAM_POSTS, SITE_HOME);
       wireTabs(); wireCopy(FAM_POSTS, SITE_HOME); return;
     }
     if (mkTab === 'year') return loadYear();
     if (mkTab === 'gdo') return loadGdo();
+    if (mkTab === 'angles') return loadGdo('angles');
     return loadRecruiting();
   }
   // Year plan: a year of Facebook and Instagram posts (office/social-calendar.json), 3 a week, each with its own picture
@@ -286,21 +287,25 @@
     app.querySelectorAll('[data-yig]').forEach(function (b) { b.onclick = function () { copyText(yrText(YEAR.posts[+b.dataset.yig], 'ig'), b); }; });
   }
   // Good Days Out posts and Reels (office/gdo-posts.json): drafts to copy, not scheduled
-  var GDO = null;
+  var GDO = null, ANG = null;
   function gdoText(p, where) {
     var t = p.text.replace('{LINK}', where === 'ig' ? 'Tap the link in our bio to ' + (p.audience === 'family' ? 'find a good day out near you.' : 'apply.') : p.link);
     return t + (p.tags ? '\n\n' + p.tags : '');
   }
-  async function loadGdo() {
-    if (!GDO) {
+  async function loadGdo(which) {
+    var ang = which === 'angles';
+    if (ang ? !ANG : !GDO) {
       app.innerHTML = mkHead() + '<p class="muted">Loading...</p>'; wireTabs();
-      try { GDO = await (await fetch('/office/gdo-posts.json?v=' + Date.now())).json(); } catch (x) { GDO = null; }
-      if (!GDO) { app.innerHTML = mkHead() + '<div class="card">The Good Days Out posts could not load. Refresh to try again.</div>'; wireTabs(); return; }
+      var j = null; try { j = await (await fetch('/office/' + (ang ? 'angle' : 'gdo') + '-posts.json?v=' + Date.now())).json(); } catch (x) { j = null; }
+      if (!j) { app.innerHTML = mkHead() + '<div class="card">These posts could not load. Refresh to try again.</div>'; wireTabs(); return; }
+      if (ang) ANG = j; else GDO = j;
     }
-    var reels = GDO.posts.filter(function (p) { return p.kind === 'reel'; }), posts = GDO.posts.filter(function (p) { return p.kind !== 'reel'; });
+    var SET = ang ? ANG : GDO;
+    var reels = SET.posts.filter(function (p) { return p.kind === 'reel'; }), posts = SET.posts.filter(function (p) { return p.kind !== 'reel'; });
     function card(p) {
-      var i = GDO.posts.indexOf(p), media = p.video
+      var i = SET.posts.indexOf(p), media = p.video
         ? '<video src="/assets/videos/' + p.video + '.mp4" poster="/assets/videos/' + p.video + '.jpg" controls preload="none" playsinline style="flex:0 0 150px;width:150px;border-radius:10px;display:block;background:#13204b"></video>'
+        : p.photo ? '<a href="/assets/social/' + p.id + '.jpg" target="_blank" style="flex:0 0 150px;width:150px"><img src="/assets/social/' + p.id + '.jpg" alt="Picture for this post" loading="lazy" style="width:100%;border-radius:10px;display:block"></a>'
         : '<a href="' + e(p.link) + '" target="_blank" style="flex:0 0 150px;width:150px;min-height:120px;border-radius:10px;background:#eef4fa;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:.85rem;font-weight:700">Link post<br>(Facebook shows the page picture)</a>';
       return '<div class="card rec" style="margin-bottom:14px"><div style="display:flex;gap:16px;flex-wrap:wrap">' + media +
         '<div style="flex:1 1 260px;min-width:0"><div class="muted small">' + (p.scheduled ? new Date(p.scheduled).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Chicago' }) + ' &middot; ' : '') + (p.audience === 'family' ? 'For families' : 'Recruiting Neighbors') + (p.video ? ' &middot; <b>Reel</b>' : '') + '</div>' +
@@ -308,16 +313,18 @@
         '<pre style="white-space:pre-wrap;font:inherit;font-size:.92rem;background:#f5f8fc;border:1px solid var(--line);border-radius:12px;padding:14px;margin:0;max-height:240px;overflow:auto">' + e(gdoText(p, 'fb')) + '</pre>' +
         '<div class="acts"><button class="go" data-gfb="' + i + '">Copy for Facebook</button><button data-gig="' + i + '">Copy for Instagram</button>' +
         (p.video ? '<a class="small" href="/assets/videos/' + p.video + '.mp4" download style="align-self:center">Download Reel</a>' : '') +
+        (p.photo ? '<a class="small" href="/assets/social/' + p.id + '.jpg" download style="align-self:center">Download picture</a>' : '') +
         '<a class="small" href="' + e(p.link) + '" target="_blank" style="align-self:center">Open link</a></div></div></div></div>';
     }
     app.innerHTML = mkHead() +
+      (ang ? '<div class="card" style="margin-top:16px"><h3 style="margin:0 0 6px;font-size:1.1rem">Marketing angles: ' + reels.length + ' Reel and ' + posts.length + ' posts</h3><p class="muted small" style="margin:0">Drafts for your review, not scheduled. Priced like a house cleaner, background checks every year, the whole to-do list, and Freedom: a network of helpers for Mom, Dad, Grandma or Grandpa. Each post has its own picture and link.</p></div>' :
       '<div class="card" style="margin-top:16px"><h3 style="margin:0 0 6px;font-size:1.1rem">' + reels.length + ' Reels and ' + posts.length + ' posts for the Good Days Out page</h3>' +
-      '<p class="muted small" style="margin:0">All scheduled on the Show-Me Neighbors Facebook Page through Blotato (posts 2pm, Reels 6pm Central). The copy buttons are for Instagram or anywhere else. Reels are 1080 x 1920 with your voice, for Facebook and Instagram Reels. Each post has its own link, so the For families and Recruiting Neighbors tabs show which ones bring people in. <a href="/good-days-out/" target="_blank">Open Good Days Out</a></p></div>' +
+      '<p class="muted small" style="margin:0">All scheduled on the Show-Me Neighbors Facebook Page through Blotato (posts 2pm, Reels 6pm Central). The copy buttons are for Instagram or anywhere else. Reels are 1080 x 1920 with your voice, for Facebook and Instagram Reels. Each post has its own link, so the For families and Recruiting Neighbors tabs show which ones bring people in. <a href="/good-days-out/" target="_blank">Open Good Days Out</a></p></div>') +
       '<h2 style="font-size:1.25rem;margin:22px 0 10px">Reels</h2>' + reels.map(card).join('') +
       '<h2 style="font-size:1.25rem;margin:22px 0 10px">Posts</h2>' + posts.map(card).join('');
     wireTabs();
-    app.querySelectorAll('[data-gfb]').forEach(function (b) { b.onclick = function () { copyText(gdoText(GDO.posts[+b.dataset.gfb], 'fb'), b); }; });
-    app.querySelectorAll('[data-gig]').forEach(function (b) { b.onclick = function () { copyText(gdoText(GDO.posts[+b.dataset.gig], 'ig'), b); }; });
+    app.querySelectorAll('[data-gfb]').forEach(function (b) { b.onclick = function () { copyText(gdoText(SET.posts[+b.dataset.gfb], 'fb'), b); }; });
+    app.querySelectorAll('[data-gig]').forEach(function (b) { b.onclick = function () { copyText(gdoText(SET.posts[+b.dataset.gig], 'ig'), b); }; });
   }
   async function loadRecruiting() {
     var r = await sb.from('neighbors').select('source, status');
@@ -325,7 +332,7 @@
     rows.forEach(function (n) { var k = n.source || '(no post link)'; by[k] = by[k] || { all: 0, passed: 0, approved: 0 }; by[k].all++;
       if (['Next steps', 'Waiting on checks', 'Ready for approval', 'Approved', 'Paused'].indexOf(n.status) >= 0) by[k].passed++;
       if (n.status === 'Approved') by[k].approved++; });
-    var label = {}; POSTS.forEach(function (p) { label[p.code] = p.where; }); label['fb-year'] = 'Year plan posts (Facebook)'; (GDO ? GDO.posts : []).forEach(function (p) { label[p.code] = 'Good Days Out: ' + p.theme; }); label['ig-bio'] = 'Instagram bio link'; label['fb-bio'] = 'Facebook page link';
+    var label = {}; POSTS.forEach(function (p) { label[p.code] = p.where; }); label['fb-year'] = 'Year plan posts (Facebook)'; (GDO ? GDO.posts : []).concat(ANG ? ANG.posts : []).forEach(function (p) { label[p.code] = p.theme; }); label['ig-bio'] = 'Instagram bio link'; label['fb-bio'] = 'Facebook page link';
     var keys = Object.keys(by).sort(function (a, b) { return by[b].all - by[a].all; });
     var h = mkHead() +
       '<h2 style="font-size:1.25rem;margin:22px 0 10px">Which posts are working</h2>' +
