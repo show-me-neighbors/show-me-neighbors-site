@@ -195,7 +195,7 @@
     }
     var was = btn.textContent; btn.textContent = ok ? 'Copied!' : 'Select and copy by hand'; setTimeout(function () { btn.textContent = was; }, 1800);
   }
-  var mkTab = 'families';
+  var mkTab = 'score';
   function postCards(list, site) {
     return list.map(function (p, i) { return '<div class="card rec" style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline"><h3 style="margin:0;font-size:1.1rem">' + e(p.where) + '</h3>' +
       '<div class="acts" style="margin:0"><button class="go" data-copy="' + i + '">Copy post</button><button data-copylink="' + i + '">Copy link only</button></div></div>' +
@@ -208,7 +208,7 @@
   }
   function mkHead() {
     return nav() + '<h1 style="font-size:1.9rem;margin-bottom:0">Marketing</h1><p class="muted" style="margin:4px 0 0">Ready-to-post ads. Each one has its own link, so you can see which posts bring people in. Copy the whole post; the link is already in it.</p>' +
-      '<div class="bar tabs" style="margin-top:16px"><button data-mk="families" class="' + (mkTab === 'families' ? 'on' : '') + '">For families</button><button data-mk="neighbors" class="' + (mkTab === 'neighbors' ? 'on' : '') + '">Recruiting Neighbors</button><button data-mk="year" class="' + (mkTab === 'year' ? 'on' : '') + '">Year plan</button><button data-mk="gdo" class="' + (mkTab === 'gdo' ? 'on' : '') + '">Good Days Out</button><button data-mk="angles" class="' + (mkTab === 'angles' ? 'on' : '') + '">Angles</button><button data-mk="places" class="' + (mkTab === 'places' ? 'on' : '') + '">Places</button></div>';
+      '<div class="bar tabs" style="margin-top:16px"><button data-mk="score" class="' + (mkTab === 'score' ? 'on' : '') + '">Scorecard</button><button data-mk="families" class="' + (mkTab === 'families' ? 'on' : '') + '">For families</button><button data-mk="neighbors" class="' + (mkTab === 'neighbors' ? 'on' : '') + '">Recruiting Neighbors</button><button data-mk="year" class="' + (mkTab === 'year' ? 'on' : '') + '">Year plan</button><button data-mk="gdo" class="' + (mkTab === 'gdo' ? 'on' : '') + '">Good Days Out</button><button data-mk="angles" class="' + (mkTab === 'angles' ? 'on' : '') + '">Angles</button><button data-mk="places" class="' + (mkTab === 'places' ? 'on' : '') + '">Places</button></div>';
   }
   function wireTabs() { app.querySelectorAll('[data-mk]').forEach(function (b) { b.onclick = function () { mkTab = b.dataset.mk; loadMarketing(); }; }); }
   function sourceTable(rows, label, cols) {
@@ -220,6 +220,7 @@
       : '<div class="card muted">Nobody yet. Once people come from a post link, each post shows here.</div>');
   }
   async function loadMarketing() {
+    if (mkTab === 'score') return loadScore();
     if (mkTab === 'families') {
       var fr = await sb.from('families').select('source, card_last4');
       var lab = {}; FAM_POSTS.forEach(function (p) { lab[p.code] = p.where; }); lab['fam-fb-year'] = 'Year plan posts (Facebook)'; (GDO ? GDO.posts : []).concat(ANG ? ANG.posts : [], PLC ? PLC.posts : []).forEach(function (p) { lab[p.code] = p.theme; }); if (!GDO) fetch('/office/gdo-posts.json').then(function (r) { return r.json(); }).then(function (j) { GDO = j; }).catch(function () {}); if (!ANG) fetch('/office/angle-posts.json').then(function (r) { return r.json(); }).then(function (j) { ANG = j; }).catch(function () {}); if (!PLC) fetch('/office/place-posts.json').then(function (r) { return r.json(); }).then(function (j) { PLC = j; }).catch(function () {}); lab['ig-bio'] = 'Instagram bio link'; lab['fb-bio'] = 'Facebook page link';
@@ -327,6 +328,113 @@
     wireTabs();
     app.querySelectorAll('[data-gfb]').forEach(function (b) { b.onclick = function () { copyText(gdoText(SET.posts[+b.dataset.gfb], 'fb'), b); }; });
     app.querySelectorAll('[data-gig]').forEach(function (b) { b.onclick = function () { copyText(gdoText(SET.posts[+b.dataset.gig], 'ig'), b); }; });
+  }
+  // Scorecard (2026-11-09, her monthly content scorecard): did the posts turn into families and Neighbors?
+  // Seen (not connected yet, said so), Visited (site_events, the site's own cookie-free counter), Reached out
+  // (family accounts, home-page forms, Neighbor applications), Became (card added, visits booked and done, Neighbors
+  // approved), this month vs last, then which channels brought them (families.source / neighbors.source).
+  // Counts only. Anything that cannot be read says so in red instead of showing a zero.
+  function scChannel(tag, host) {
+    var t = String(tag || '').toLowerCase();
+    if (t) {
+      if (/(^|-)(yt|youtube)(-|$)/.test(t)) return 'youtube';
+      if (/(^|-)(ig|instagram)(-|$)/.test(t)) return 'instagram';
+      if (/(^|-)(fb|facebook)(-|$)/.test(t) || /^(gdo|ang|plc)-/.test(t)) return 'facebook';
+      if (/(^|-)nextdoor(-|$)/.test(t)) return 'nextdoor';
+      if (/(^|-)(flyer|print|card)(-|$)/.test(t)) return 'print';
+      return 'tagged';
+    }
+    var h = String(host || '').toLowerCase();
+    if (!h) return 'direct';
+    if (/(^|\.)(youtube\.com|youtu\.be)$/.test(h)) return 'youtube';
+    if (/(^|\.)(facebook\.com|fb\.com|fb\.me|messenger\.com)$/.test(h)) return 'facebook';
+    if (/(^|\.)instagram\.com$/.test(h)) return 'instagram';
+    if (/(^|\.)google\.[a-z.]+$/.test(h) || /googlequicksearchbox/.test(h)) return 'google';
+    if (/(^|\.)(bing\.com|duckduckgo\.com|search\.yahoo\.com)$/.test(h)) return 'other_search';
+    if (/(^|\.)nextdoor\.com$/.test(h)) return 'nextdoor';
+    return 'other_site';
+  }
+  var SC_CH = [['facebook', 'Facebook'], ['youtube', 'YouTube'], ['instagram', 'Instagram'], ['google', 'Google'], ['other_search', 'Bing, DuckDuckGo or Yahoo'], ['nextdoor', 'Nextdoor'], ['print', 'Flyers and cards'], ['tagged', 'Other post links'], ['direct', 'Typed the address, or no post link'], ['other_site', 'Other websites']];
+  async function scAll(q) {
+    var out = [];
+    for (var i = 0; i < 60; i++) {
+      var r = await q().range(i * 1000, i * 1000 + 999);
+      if (r.error) throw new Error(r.error.message || 'could not read');
+      out = out.concat(r.data || []);
+      if (!r.data || r.data.length < 1000) return out;
+    }
+    throw new Error('too many rows to count here');
+  }
+  async function scRead(name, q) { try { return { rows: await scAll(q) }; } catch (x) { return { error: (x && x.message) || 'error' }; } }
+  function scNumbers(D, f, t) {
+    var inP = function (iso) { if (!iso) return false; var d = new Date(iso); return d >= f && d < t; };
+    var N = {};
+    if (!D.ev.error) {
+      var vis = {}, by = {}, calls = {};
+      D.ev.rows.forEach(function (r) { if (!inP(r.created_at)) return;
+        if (r.event === 'page_view' && !vis[r.session_id]) { vis[r.session_id] = 1; var c = scChannel(r.from_tag, r.came_from); by[c] = (by[c] || 0) + 1; }
+        if (r.event === 'call_click') calls[r.session_id] = 1; });
+      N.visits = Object.keys(vis).length; N.visitsBy = by; N.calls = Object.keys(calls).length;
+    }
+    if (!D.fam.error) {
+      var fam = D.fam.rows.filter(function (r) { return inP(r.created_at); });
+      N.fam = fam.length; N.famBy = {}; fam.forEach(function (r) { var c = scChannel(r.source, ''); N.famBy[c] = (N.famBy[c] || 0) + 1; });
+      N.card = D.fam.rows.filter(function (r) { return inP(r.card_saved_at); }).length;
+    }
+    if (!D.sig.error) { var sg = D.sig.rows.filter(function (r) { return inP(r.created_at); });
+      N.sigFam = sg.filter(function (r) { return r.kind === 'family'; }).length; N.sigNb = sg.filter(function (r) { return r.kind === 'neighbor'; }).length; N.quiz = sg.filter(function (r) { return r.kind === 'quiz'; }).length; }
+    if (!D.nb.error) {
+      var nb = D.nb.rows.filter(function (r) { return inP(r.created_at); });
+      N.apps = nb.length; N.appsBy = {}; nb.forEach(function (r) { var c = scChannel(r.source, ''); N.appsBy[c] = (N.appsBy[c] || 0) + 1; });
+      N.approved = D.nb.rows.filter(function (r) { return inP(r.approved_at); }).length;
+    }
+    if (!D.vis.error) {
+      N.booked = D.vis.rows.filter(function (r) { return inP(r.created_at); }).length;
+      N.done = D.vis.rows.filter(function (r) { return r.status === 'Done' && inP(r.clock_out_at); }).length;
+    }
+    return N;
+  }
+  async function loadScore() {
+    app.innerHTML = mkHead() + '<div class="card muted" style="margin-top:16px">Counting…</div>'; wireTabs();
+    var now = new Date(), mS = new Date(now.getFullYear(), now.getMonth(), 1), pS = new Date(now.getFullYear(), now.getMonth() - 1, 1), from = pS.toISOString();
+    var D = {
+      ev: await scRead('visits', function () { return sb.from('site_events').select('created_at, session_id, event, came_from, from_tag').gte('created_at', from).order('created_at'); }),
+      fam: await scRead('families', function () { return sb.from('families').select('created_at, source, card_saved_at').order('created_at'); }),
+      sig: await scRead('sign-ups', function () { return sb.from('signups').select('created_at, kind').gte('created_at', from).order('created_at'); }),
+      nb: await scRead('applicants', function () { return sb.from('neighbors').select('created_at, source, approved_at').order('created_at'); }),
+      vis: await scRead('visits booked', function () { return sb.from('visits').select('created_at, status, clock_out_at').order('created_at'); })
+    };
+    if (mkTab !== 'score') return;
+    var A = scNumbers(D, mS, new Date(now.getTime() + 864e5)), B = scNumbers(D, pS, mS);
+    var mn = function (d) { return d.toLocaleDateString('en-US', { month: 'long' }); };
+    var red = function (t) { return '<span style="color:#b42318;font-size:.85rem">' + t + '</span>'; };
+    var num = function (src, k) { return D[src].error ? red('could not read') : String(A[k] || 0); };
+    var was = function (src, k) { return D[src].error ? '' : String(B[k] || 0); };
+    var row = function (lab, a, b, note) { return '<tr><td>' + lab + (note ? '<div class="muted small">' + note + '</div>' : '') + '</td><td style="text-align:right;font-weight:800">' + a + '</td><td style="text-align:right;font-weight:800">' + b + '</td></tr>'; };
+    var step = function (t) { return '<tr><td colspan="3" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;font-weight:800;padding-top:16px">' + t + '</td></tr>'; };
+    var split = function (src, k) { if (D[src].error) return ''; var h = ''; SC_CH.forEach(function (c) { var a = (A[k] || {})[c[0]] || 0, b = (B[k] || {})[c[0]] || 0; if (a || b) h += row('<span class="muted" style="padding-left:14px">' + c[1] + '</span>', a, b); }); return h; };
+    var h = mkHead() + '<p class="muted" style="margin:14px 0 10px">Did our posts turn into families and Neighbors? ' + e(mn(mS)) + ' so far next to ' + e(mn(pS)) + '. Counts only, never a person.</p>' +
+      '<div class="tablewrap"><table style="min-width:420px"><thead><tr><th></th><th style="text-align:right">' + e(mn(mS)) + ' so far</th><th style="text-align:right">' + e(mn(pS)) + '</th></tr></thead><tbody>' +
+      step('1 Seen') + row('Facebook and YouTube views', '<span class="muted" style="font-weight:500">not connected yet</span>', '', 'Views will show here once they are connected.') +
+      step('2 Visited the website') + row('Visits', num('ev', 'visits'), was('ev', 'visits'), 'One visit = one browser tab, however many pages. Counting started November 9, 2026. Where they came from:') + split('ev', 'visitsBy') +
+      step('3 Reached out') +
+      row('Family accounts made', num('fam', 'fam'), was('fam', 'fam'), 'By the post link that brought them:') + split('fam', 'famBy') +
+      row('Home-page forms: families', num('sig', 'sigFam'), was('sig', 'sigFam')) +
+      row('Home-page forms: Neighbors', num('sig', 'sigNb'), was('sig', 'sigNb')) +
+      row('Fit quiz finished', num('sig', 'quiz'), was('sig', 'quiz')) +
+      row('Phone number tapped on the website', num('ev', 'calls'), was('ev', 'calls')) +
+      row('Neighbor applications', num('nb', 'apps'), was('nb', 'apps'), 'By the post link that brought them:') + split('nb', 'appsBy') +
+      step('4 Became') +
+      row('Families who added a card', num('fam', 'card'), was('fam', 'card')) +
+      row('Visits booked', num('vis', 'booked'), was('vis', 'booked')) +
+      row('Visits done', num('vis', 'done'), was('vis', 'done')) +
+      row('Neighbors approved', num('nb', 'approved'), was('nb', 'approved')) +
+      '</tbody></table></div>';
+    var errs = ['ev', 'fam', 'sig', 'nb', 'vis'].filter(function (k) { return D[k].error; });
+    if (errs.length) h += '<div class="card" style="margin-top:12px;color:#b42318">Some numbers could not be read (' + e(errs.map(function (k) { return D[k].error; }).join('; ')) + '), so they are not shown rather than guessed. Tell Claude. <button class="go" id="scAgain">Try again</button></div>';
+    h += '<p class="muted small" style="margin-top:10px">Which single post works best is on the For families and Recruiting Neighbors tabs. The visit counter uses no cookies.</p>';
+    app.innerHTML = h; wireTabs();
+    var ag = document.getElementById('scAgain'); if (ag) ag.onclick = loadScore;
   }
   async function loadRecruiting() {
     var r = await sb.from('neighbors').select('source, status');
