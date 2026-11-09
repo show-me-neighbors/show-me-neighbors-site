@@ -187,7 +187,7 @@
       '<div class="grid-2"><div class="field"><label for="s-email">Your email</label><input id="s-email" type="email" autocomplete="email"></div><div class="field"><label for="s-phone">Your mobile phone</label><input id="s-phone" type="tel" autocomplete="tel"></div></div>' +
       '<div class="grid-2"><div class="field"><label for="s-zip">ZIP code where the visits will be</label><input id="s-zip" inputmode="numeric" maxlength="5"></div>' +
       '<div class="field"><label for="s-heard">How did you hear about us?</label><select id="s-heard"><option value="">Choose one</option><option>Friend or family</option><option>Facebook or social media</option><option>Online search</option><option>Doctor, church or community group</option><option>Flyer or newspaper</option><option>Other</option></select></div></div>' +
-      '<label class="agree-row" style="margin:6px 0 4px"><input type="checkbox" id="s-agree"> <span>I have read and agree to the <a href="../family-agreement.html" target="_blank" rel="noopener">Family Agreement</a></span></label>' +
+      '<label class="agree-row" style="margin:6px 0 4px"><input type="checkbox" id="s-agree"> <span>I have read and agree to the <a href="../terms-of-use.html" target="_blank" rel="noopener">Terms of Use</a></span></label>' +
       '<p class="form-consent">By making an account you agree Show-Me Neighbors may email and text you about your account and visits. Message and data rates may apply. See our <a href="../privacy.html">privacy policy</a>.</p>' +
       '<button class="btn btn-primary" style="width:100%">Make my account</button><div id="sf-msg"></div></form></div>';
   }
@@ -205,8 +205,8 @@
   function homeScreen(note) {
     var f = data.family, cd = f.card;
     var h = '<div class="headrow"><div><h1>Hi, ' + e(f.first_name) + '</h1><p class="muted" style="margin:2px 0 0">Here is everything for your family in one place.</p></div>' + bookBtn() + '</div>' + (note || '');
-    if (!f.agreed) h += '<form id="agf" class="card" style="margin-bottom:18px"><h2 style="margin-top:0">One quick step: our Family Agreement</h2><p>It explains prices, cancelling, what Neighbors do and never do, and how we keep everyone safe. Please read it before you book.</p>' +
-      '<p><a href="../family-agreement.html" target="_blank" rel="noopener">Read the Family Agreement</a></p><label class="agree-row"><input type="checkbox" id="ag-ok"> <span>I have read and agree to the Family Agreement</span></label>' +
+    if (!f.agreed) h += '<form id="agf" class="card" style="margin-bottom:18px"><h2 style="margin-top:0">One quick step: our Terms of Use</h2><p>It explains prices, cancelling, what Neighbors do and never do, and how we keep everyone safe. Please read it before you book.</p>' +
+      '<p><a href="../terms-of-use.html" target="_blank" rel="noopener">Read the Terms of Use</a></p><label class="agree-row"><input type="checkbox" id="ag-ok"> <span>I have read and agree to the Terms of Use</span></label>' +
       '<button class="btn btn-primary btn-small" style="margin-top:10px">Save</button><div id="agf-msg"></div></form>';
     h += '<div class="tiles">';
     data.people.forEach(function (p) {
@@ -612,7 +612,7 @@
     if (f.id === 'sf') {
       var isFor = (f.querySelector('[name=is_for]:checked') || {}).value;
       var body = { is_for: isFor, first_name: g('s-first'), last_name: g('s-last'), person_first: g('s-pfirst'), person_last: g('s-plast'), email: g('s-email'), phone: g('s-phone'), zip: g('s-zip'), heard: g('s-heard'), source: fromCode(), website: f.website.value , agree: !!(document.getElementById('s-agree') || {}).checked };
-      var problem = !body.first_name || !body.last_name ? 'Please add your first and last name.' : (isFor !== 'Me' && !body.person_first) ? 'Please add the first name of the person the visits are for.' : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email) ? 'Please check your email address.' : !/^\d{5}$/.test(body.zip) ? 'Please add the 5-digit ZIP code where the visits will be.' : !body.agree ? 'Please check the box to agree to the Family Agreement.' : '';
+      var problem = !body.first_name || !body.last_name ? 'Please add your first and last name.' : (isFor !== 'Me' && !body.person_first) ? 'Please add the first name of the person the visits are for.' : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email) ? 'Please check your email address.' : !/^\d{5}$/.test(body.zip) ? 'Please add the 5-digit ZIP code where the visits will be.' : !body.agree ? 'Please check the box to agree to the Terms of Use.' : '';
       if (problem) return say('sf-msg', problem);
       busy(btn, 'Making your account...'); var r = await call('start', body); unbusy(btn);
       if (!r || !r.ok) return say('sf-msg', (r && r.error) || 'That did not work. Please try again.');
