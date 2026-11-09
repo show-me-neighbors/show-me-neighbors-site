@@ -468,3 +468,17 @@ h1 { letter-spacing: -0.025em; }
 .legal h2 { font-size: 1.45rem; margin-top: 1.6em; }
 .legal ul { padding-left: 1.2em; }
 .legal li { margin-bottom: .5em; }
+
+/* About us (11-08) */
+.about .lead { max-width: 46em; }
+.about sup { font-size: .6em; color: var(--brick); font-weight: 800; }
+.about-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin: 28px 0 8px; }
+.about-cols > div { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 26px; box-shadow: var(--shadow); }
+.about-cols h3 { font-weight: 800; margin-bottom: .4em; }
+.about-cols p { color: var(--ink-soft); margin: 0; }
+.about-close { font-family: "Nunito", sans-serif; font-weight: 800; font-size: 1.3rem; line-height: 1.4; margin: 24px 0 6px; max-width: 40em; }
+.about-sign { font-weight: 800; color: var(--brick); margin: 0 0 18px; }
+.about-src { font-size: .82rem; color: var(--ink-soft); margin: 0; }
+@media (max-width: 760px) { .about-cols { grid-template-columns: 1fr; } }
+.founder.about { max-width: 980px; text-align: left; }
+.founder.about .lead { margin: 0; }
