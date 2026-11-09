@@ -236,7 +236,7 @@
   var YEAR = null, yrMonth = null, yrWho = 'all';
   var YR_LINK = { family: 'showmeneighbors.com/?from=fam-fb-year', neighbor: 'showmeneighbors.com/apply/?from=fb-year' };
   function yrText(p, where) {
-    var cta = where === 'ig' ? 'Tap the link in our bio to ' + (p.audience === 'family' ? 'make a free family account.' : 'apply.') : 'https://' + YR_LINK[p.audience];
+    var cta = where === 'ig' ? 'Tap the link in our bio to ' + (p.audience === 'family' ? 'make a free family account.' : 'apply.') : 'https://' + (p.path ? YR_LINK[p.audience].replace('showmeneighbors.com/', 'showmeneighbors.com/' + p.path + '/') : YR_LINK[p.audience]);
     var t = p.text.replace('{LINK}', cta);
     if (p.link && where !== 'ig') t += '\n\n' + p.link;
     if (p.format === 'recipe' && p.ingredients && t.indexOf(p.ingredients[0]) < 0) t += '\n\nYou will need:\n' + p.ingredients.map(function (x) { return '- ' + x; }).join('\n');
