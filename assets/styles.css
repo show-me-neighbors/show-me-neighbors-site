@@ -529,3 +529,9 @@ h1 { letter-spacing: -0.025em; }
 }
 @media (max-width: 920px) { .video-row, .gdo-teaser { grid-template-columns: 1fr; } .video-row video { max-width: 340px; } .tile-grid, .area-cards { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 620px) { .tile-grid, .area-cards { grid-template-columns: 1fr; } .cleaner-line { align-items: flex-start; } }
+
+/* Social icons in the footer (2026-11-09) */
+.footer-social { grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.footer-social .lbl { color: var(--sun); font-size: .85rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; margin-right: 6px; }
+.site-footer .footer-social a { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,.1); color: #fff; }
+.site-footer .footer-social a:hover { background: var(--sun); color: var(--ink); text-decoration: none; }
