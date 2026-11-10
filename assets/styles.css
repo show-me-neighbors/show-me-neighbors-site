@@ -399,6 +399,17 @@ h1 { letter-spacing: -0.025em; }
 .hero2 .picker-fine a { color: var(--brick-dark); font-weight: 800; }
 .trust-strip.left { justify-content: flex-start; margin-top: 18px; }
 
+/* Wide screens: header + hero use more of the page so the words are not floating in the middle (11-10) */
+@media (min-width: 901px) {
+  .site-header .wrap, .hero2 .wrap { max-width: 1480px; padding: 0 48px; }
+  .hero2 .wrap { min-height: 640px; }
+  .hero2-copy { max-width: 600px; }
+  .hero2 h1 { font-size: clamp(2.6rem, 4.4vw, 4.1rem); }
+  .hero2 .lead { font-size: 1.25rem; }
+  .hero2-photo { left: 30%; }
+  .hero2-photo::after { background: linear-gradient(90deg, #fff 0%, #fff 14%, rgba(255,255,255,.85) 26%, rgba(255,255,255,0) 46%); }
+}
+
 /* At-a-glance icon strip */
 .glance { background: var(--sage-soft); padding: 34px 0 64px; }
 .glance-row { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); }
