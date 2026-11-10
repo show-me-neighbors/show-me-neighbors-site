@@ -1,0 +1,21 @@
+{
+ "december-2026": {
+  "month": "December 2026",
+  "published": "2026-11-10",
+  "title": "Good Days Out in December 2026: Holiday Lights and Warm Indoor Outings",
+  "short": "December 2026",
+  "description": "Holiday lights, Christmas on Main Street and warm indoor outings for older adults in Springfield, Branson and St. Charles County this December.",
+  "intro": "December is full of lights, music and Christmas on Main Street. Here are our picks for a good day out this month in the three areas where Neighbors are starting now, plus a few warm indoor places for the colder days. Many light displays are drive-through, so they are easy outings for anyone who would rather stay in the car.",
+  "areas": [
+   {"name": "Springfield and Ozark", "counties": ["Greene", "Christian"], "reel": "gdo-reel-springfield", "reel_title": "Good days out around Springfield",
+    "tip": "Gardens Aglow has level, lit paths with benches, and fire pits for warming up.",
+    "picks": ["p509", "p515"], "indoor": ["p513", "p285"]},
+   {"name": "Branson and Table Rock Lake", "counties": ["Taney", "Stone"], "reel": "gdo-reel-branson", "reel_title": "Good days out around Branson",
+    "tip": "Silver Dollar City has trams and buses from free parking to the entrance. A shorter visit at dusk, when the lights come on, can be just right.",
+    "picks": ["p1504", "p1500", "p1492"], "indoor": ["p1489", "p1511"]},
+   {"name": "St. Charles County", "counties": ["St. Charles"], "reel": "gdo-reel-stcharles", "reel_title": "Good days out in St. Charles County",
+    "tip": "The free St. Charles Trolley runs Friday through Sunday until December 20 and has a lift for wheelchairs, scooters and walkers. It is an easy way to see Christmas Traditions on Main Street without long walks.",
+    "picks": ["p1252", "p1257", "p1235", "p1267"], "indoor": ["p1242", "p1241"]}
+  ]
+ }
+}

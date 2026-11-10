@@ -164,3 +164,20 @@
   .gdo-region ul { columns: 1; }
   .gdo-stats b { font-size: 1.7rem; }
 }
+
+/* Monthly guides (setup/build-gdo-monthly.py) */
+.gdo-month-jump { margin-top: 18px; }
+.gdo-month-top { display: grid; grid-template-columns: minmax(0, 300px) 1fr; gap: 26px; align-items: start; margin-top: 22px; }
+.gdo-reel { margin: 0; }
+.gdo-reel video { width: 100%; aspect-ratio: 9 / 16; border-radius: 14px; background: #1d2b36; display: block; object-fit: cover; }
+.gdo-reel figcaption { font-size: .9rem; color: var(--muted, #5d6470); margin-top: 8px; }
+.gdo-month-tip { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; }
+.gdo-month-tip h3 { margin: 0 0 8px; }
+.gdo-month-sub { margin-top: 30px; }
+.gdo-month-more { margin-top: 18px; font-weight: 700; }
+.gdo-month-neighbor { background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--brick); border-radius: 14px; padding: 22px 24px; }
+.gdo-month-neighbor h2 { margin-top: 0; }
+@media (max-width: 760px) {
+  .gdo-month-top { grid-template-columns: 1fr; }
+  .gdo-reel { max-width: 320px; margin: 0 auto; }
+}
